@@ -1,0 +1,194 @@
+[gd_scene load_steps=2 format=3 uid="uid://df0exj62s1dhv"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_f2n4w"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_f2n4w")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0705882, 0.0784314, 0.117647, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="RootVBox" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="VBoxContainer" parent="MarginContainer/RootVBox"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/RootVBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Scared Little Dog vs. The Dark Hallway"
+
+[node name="FlavorLabel" type="Label" parent="MarginContainer/RootVBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+modulate = Color(0.803922, 0.756863, 0.588235, 1)
+text = "Every creak sounds enormous. Every shadow looks hungry."
+
+[node name="BattleRow" type="HBoxContainer" parent="MarginContainer/RootVBox"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="PlayerPanel" type="PanelContainer" parent="MarginContainer/RootVBox/BattleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerVBox" type="VBoxContainer" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerName" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "The Little Dog"
+
+[node name="PlayerHPLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP: 28 / 28"
+
+[node name="PlayerCourageLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Courage: 3 / 3"
+
+[node name="PlayerBlockLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Block: 0"
+
+[node name="PlayerStatusLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Steady tail. No debuffs."
+
+[node name="CenterPanel" type="PanelContainer" parent="MarginContainer/RootVBox/BattleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CenterVBox" type="VBoxContainer" parent="MarginContainer/RootVBox/BattleRow/CenterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TurnLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+text = "Turn 1 - Player"
+
+[node name="IntentLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+text = "Intent: Attack for 7"
+
+[node name="DrawPileLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+text = "Draw pile: 0"
+
+[node name="DiscardPileLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+text = "Discard: 0"
+
+[node name="EndTurnButton" type="Button" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "End Turn"
+
+[node name="ResetButton" type="Button" parent="MarginContainer/RootVBox/BattleRow/CenterPanel/CenterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = "Try Again"
+
+[node name="MonsterPanel" type="PanelContainer" parent="MarginContainer/RootVBox/BattleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MonsterVBox" type="VBoxContainer" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MonsterName" type="Label" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel/MonsterVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "The Dark Hallway"
+
+[node name="MonsterHPLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel/MonsterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HP: 40 / 40"
+
+[node name="MonsterBlockLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel/MonsterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Block: 0"
+
+[node name="MonsterStatusLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel/MonsterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Only restless shadows."
+
+[node name="HandPanel" type="PanelContainer" parent="MarginContainer/RootVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HandMargin" type="MarginContainer" parent="MarginContainer/RootVBox/HandPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="HandContainer" type="HBoxContainer" parent="MarginContainer/RootVBox/HandPanel/HandMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="LogPanel" type="PanelContainer" parent="MarginContainer/RootVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogLabel" type="RichTextLabel" parent="MarginContainer/RootVBox/LogPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_following = true
+fit_content = false
+text = ""
