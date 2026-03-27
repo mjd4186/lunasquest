@@ -11,9 +11,11 @@ const COURAGE_PER_TURN := 3
 @onready var player_courage_label: Label = %PlayerCourageLabel
 @onready var player_block_label: Label = %PlayerBlockLabel
 @onready var player_status_label: Label = %PlayerStatusLabel
+@onready var player_buffs_label: Label = %PlayerBuffsLabel
 @onready var monster_hp_label: Label = %MonsterHPLabel
 @onready var monster_block_label: Label = %MonsterBlockLabel
 @onready var monster_status_label: Label = %MonsterStatusLabel
+@onready var monster_buffs_label: Label = %MonsterBuffsLabel
 @onready var intent_label: Label = %IntentLabel
 @onready var turn_label: Label = %TurnLabel
 @onready var draw_pile_label: Label = %DrawPileLabel
@@ -43,6 +45,8 @@ var monster_statuses := {
 var draw_pile: Array[Dictionary] = []
 var discard_pile: Array[Dictionary] = []
 var hand: Array[Dictionary] = []
+var player_buffs: Array[Dictionary] = []
+var monster_buffs: Array[Dictionary] = []
 
 var turn_number := 1
 var current_turn := "player"
@@ -65,6 +69,8 @@ func _start_battle() -> void:
 	monster_block = 0
 	player_statuses = {"weak": 0, "frail": 0}
 	monster_statuses = {"vulnerable": 0}
+	player_buffs = _build_starting_player_buffs()
+	monster_buffs = _build_starting_monster_buffs()
 	turn_number = 1
 	current_turn = "player"
 	battle_over = false
@@ -96,24 +102,76 @@ func _build_starting_deck() -> Array[Dictionary]:
 		"cost": 1,
 		"block": 5,
 		"text": "Gain 5 block.",
-	}, 5))
+	}, 4))
 	deck.append_array(_make_copies({
 		"name": "Peek Around Corner",
 		"type": "skill",
-		"cost": 1,
-		"damage": 4,
-		"block": 4,
-		"text": "Deal 4 damage and gain 4 block.",
+		"cost": 2,
+		"damage": 7,
+		"block": 7,
+		"text": "Deal 7 damage and gain 7 block.",
 	}, 2))
 	deck.append_array(_make_copies({
 		"name": "Find Courage",
 		"type": "skill",
-		"cost": 1,
+		"cost": 0,
 		"draw": 2,
-		"block": 3,
-		"text": "Gain 3 block. Draw 2 cards.",
+		"block": 2,
+		"text": "Gain 2 block. Draw 2 cards.",
+	}, 1))
+	deck.append_array(_make_copies({
+		"name": "Favorite Sweater",
+		"type": "buff",
+		"cost": 2,
+		"text": "Fight buff: At the start of your turn, gain 2 block.",
+		"buff_data": {
+			"name": "Favorite Sweater",
+			"text": "At the start of your turn, gain 2 block.",
+			"block_on_turn_start": 2,
+		},
+	}, 1))
+	deck.append_array(_make_copies({
+		"name": "Calming Drops",
+		"type": "buff",
+		"cost": 1,
+		"text": "Fight buff: At the start of your turn, gain 1 courage.",
+		"buff_data": {
+			"name": "Calming Drops",
+			"text": "At the start of your turn, gain 1 courage.",
+			"courage_on_turn_start": 1,
+		},
+	}, 1))
+	deck.append_array(_make_copies({
+		"name": "Squeaky Hedgehog",
+		"type": "buff",
+		"cost": 2,
+		"text": "Fight buff: Your attacks deal 1 extra damage.",
+		"buff_data": {
+			"name": "Squeaky Hedgehog",
+			"text": "Your attacks deal 1 extra damage.",
+			"attack_bonus": 1,
+		},
 	}, 1))
 	return deck
+
+
+func _build_starting_player_buffs() -> Array[Dictionary]:
+	return []
+
+
+func _build_starting_monster_buffs() -> Array[Dictionary]:
+	return [
+		{
+			"name": "Shadow Teeth",
+			"text": "Its attacks deal 2 extra damage.",
+			"attack_bonus": 2,
+		},
+		{
+			"name": "Cold Draft",
+			"text": "At the start of its turn, strip 3 block from the little dog.",
+			"shred_block_on_turn_start": 3,
+		},
+	]
 
 
 func _make_copies(card: Dictionary, amount: int) -> Array[Dictionary]:
@@ -135,6 +193,7 @@ func start_player_turn() -> void:
 	current_turn = "player"
 	player_courage = COURAGE_PER_TURN
 	player_block = 0
+	_apply_turn_start_buffs("player")
 	_draw_up_to(HAND_SIZE)
 	add_log("[b]Turn %d:[/b] The little dog braces herself." % turn_number)
 	update_ui()
@@ -166,8 +225,9 @@ func _on_card_pressed(index: int) -> void:
 		return
 
 	player_courage -= card_cost
-	_resolve_card(card)
-	discard_pile.append(card)
+	var should_discard := _resolve_card(card)
+	if should_discard:
+		discard_pile.append(card)
 	hand.remove_at(index)
 
 	if _check_battle_end():
@@ -177,15 +237,15 @@ func _on_card_pressed(index: int) -> void:
 	update_ui()
 
 
-func _resolve_card(card: Dictionary) -> void:
+func _resolve_card(card: Dictionary) -> bool:
 	add_log("She plays [b]%s[/b]." % card["name"])
 
+	if card.get("type", "") == "buff":
+		_gain_fight_buff(card["buff_data"])
+		return false
+
 	if card.has("damage"):
-		var amount: int = card["damage"]
-		if player_statuses.weak > 0:
-			amount = maxi(1, int(floor(amount * 0.75)))
-		if monster_statuses.vulnerable > 0:
-			amount = int(ceil(amount * 1.5))
+		var amount := _modified_attack_damage(card["damage"], "player")
 		_deal_damage_to_monster(amount)
 
 	if card.has("block"):
@@ -200,6 +260,8 @@ func _resolve_card(card: Dictionary) -> void:
 		for i in draw_amount:
 			_draw_up_to(hand.size() + 1)
 		add_log("She finds a little courage and draws %d card(s)." % draw_amount)
+
+	return true
 
 
 func _deal_damage_to_monster(amount: int) -> void:
@@ -237,13 +299,14 @@ func _on_end_turn_pressed() -> void:
 
 func _run_monster_turn() -> void:
 	monster_block = 0
+	_apply_turn_start_buffs("monster")
 	add_log("[b]The Dark Hallway acts:[/b] %s" % pending_intent["name"])
 
 	match pending_intent["kind"]:
 		"attack":
-			_deal_damage_to_player(pending_intent["damage"])
+			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], "monster"))
 		"attack_debuff":
-			_deal_damage_to_player(pending_intent["damage"])
+			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], "monster"))
 			player_statuses[pending_intent["status"]] += pending_intent["amount"]
 			add_log("She is afflicted with %s for %d turn(s)." % [String(pending_intent["status"]).capitalize(), pending_intent["amount"]])
 		"block":
@@ -269,8 +332,8 @@ func roll_monster_intent() -> void:
 		{
 			"name": "A sudden shape lunges from the dark",
 			"kind": "attack",
-			"damage": 7,
-			"preview": "Attack for 7",
+			"damage": 8,
+			"preview": "Attack for 8 (+ buffs)",
 		},
 		{
 			"name": "The hallway closes in",
@@ -281,10 +344,10 @@ func roll_monster_intent() -> void:
 		{
 			"name": "A growl echoes off the walls",
 			"kind": "attack_debuff",
-			"damage": 4,
+			"damage": 5,
 			"status": "weak",
 			"amount": 2,
-			"preview": "Attack for 4 and apply Weak 2",
+			"preview": "Attack for 5 (+ buffs) and apply Weak 2",
 		},
 		{
 			"name": "The shadows stretch longer",
@@ -297,6 +360,63 @@ func roll_monster_intent() -> void:
 	]
 	pending_intent = intents[rng.randi_range(0, intents.size() - 1)].duplicate(true)
 	update_ui()
+
+
+func _apply_turn_start_buffs(owner: String) -> void:
+	var buffs := player_buffs if owner == "player" else monster_buffs
+	for buff in buffs:
+		if buff.has("block_on_turn_start"):
+			var block_amount: int = buff["block_on_turn_start"]
+			if owner == "player":
+				player_block += block_amount
+				add_log("%s grants %d block." % [buff["name"], block_amount])
+			else:
+				monster_block += block_amount
+				add_log("%s grants the hallway %d block." % [buff["name"], block_amount])
+
+		if buff.has("courage_on_turn_start") and owner == "player":
+			var courage_amount: int = buff["courage_on_turn_start"]
+			player_courage += courage_amount
+			add_log("%s grants %d courage." % [buff["name"], courage_amount])
+
+		if buff.has("shred_block_on_turn_start"):
+			var shred_amount: int = buff["shred_block_on_turn_start"]
+			if owner == "monster":
+				var removed := mini(player_block, shred_amount)
+				player_block -= removed
+				if removed > 0:
+					add_log("%s tears away %d of the little dog's block." % [buff["name"], removed])
+			else:
+				var removed_from_monster := mini(monster_block, shred_amount)
+				monster_block -= removed_from_monster
+				if removed_from_monster > 0:
+					add_log("%s tears away %d of the hallway's block." % [buff["name"], removed_from_monster])
+
+
+func _gain_fight_buff(buff_data: Dictionary) -> void:
+	for buff in player_buffs:
+		if buff["name"] == buff_data["name"]:
+			add_log("She already has %s." % buff_data["name"])
+			return
+
+	player_buffs.append(buff_data.duplicate(true))
+	add_log("%s comforts her for this fight." % buff_data["name"])
+
+
+func _modified_attack_damage(base_damage: int, attacker: String) -> int:
+	var total_damage := base_damage
+	var buffs := player_buffs if attacker == "player" else monster_buffs
+
+	for buff in buffs:
+		if buff.has("attack_bonus"):
+			total_damage += buff["attack_bonus"]
+
+	if attacker == "player" and player_statuses.weak > 0:
+		total_damage = maxi(1, int(floor(total_damage * 0.75)))
+	if attacker == "player" and monster_statuses.vulnerable > 0:
+		total_damage = int(ceil(total_damage * 1.5))
+
+	return total_damage
 
 
 func _tick_down_player_statuses() -> void:
@@ -325,9 +445,11 @@ func update_ui() -> void:
 	player_courage_label.text = "Courage: %d / %d" % [player_courage, COURAGE_PER_TURN]
 	player_block_label.text = "Block: %d" % player_block
 	player_status_label.text = _format_statuses(player_statuses, "Steady tail. No debuffs.")
+	player_buffs_label.text = _format_buffs(player_buffs, "No comfort items yet.")
 	monster_hp_label.text = "HP: %d / %d" % [monster_hp, MONSTER_STARTING_HP]
 	monster_block_label.text = "Block: %d" % monster_block
 	monster_status_label.text = _format_statuses(monster_statuses, "Only restless shadows.")
+	monster_buffs_label.text = _format_buffs(monster_buffs, "No dark traits.")
 	intent_label.text = "Intent: %s" % pending_intent.get("preview", "Unknown")
 	turn_label.text = "Turn %d - %s" % [turn_number, "Player" if current_turn == "player" else "Monster"]
 	draw_pile_label.text = "Draw pile: %d" % draw_pile.size()
@@ -345,6 +467,16 @@ func _format_statuses(statuses: Dictionary, empty_text: String) -> String:
 	if parts.is_empty():
 		return empty_text
 	return "Statuses: %s" % ", ".join(parts)
+
+
+func _format_buffs(buffs: Array[Dictionary], empty_text: String) -> String:
+	if buffs.is_empty():
+		return empty_text
+
+	var parts: Array[String] = []
+	for buff in buffs:
+		parts.append("%s: %s" % [buff["name"], buff["text"]])
+	return "Buffs: %s" % " | ".join(parts)
 
 
 func _rebuild_hand() -> void:

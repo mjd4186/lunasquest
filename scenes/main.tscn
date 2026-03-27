@@ -89,6 +89,12 @@ layout_mode = 2
 autowrap_mode = 3
 text = "Steady tail. No debuffs."
 
+[node name="PlayerBuffsLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/PlayerPanel/PlayerVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "No comfort items yet."
+
 [node name="CenterPanel" type="PanelContainer" parent="MarginContainer/RootVBox/BattleRow"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -162,6 +168,12 @@ unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "Only restless shadows."
+
+[node name="MonsterBuffsLabel" type="Label" parent="MarginContainer/RootVBox/BattleRow/MonsterPanel/MonsterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Buffs: Shadow Teeth: Its attacks deal 2 extra damage."
 
 [node name="HandPanel" type="PanelContainer" parent="MarginContainer/RootVBox"]
 layout_mode = 2
