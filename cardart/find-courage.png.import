@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://yrhsreesvsxj"
-path="res://.godot/imported/yip.jpg-94414f3bdb6b3bb7628a11a55147bb66.ctex"
+uid="uid://cxl2ffyehum13"
+path="res://.godot/imported/find-courage.png-2bb776693c6c1437984fa12e7c39f06f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/yip.jpg"
-dest_files=["res://.godot/imported/yip.jpg-94414f3bdb6b3bb7628a11a55147bb66.ctex"]
+source_file="res://cardart/find-courage.png"
+dest_files=["res://.godot/imported/find-courage.png-2bb776693c6c1437984fa12e7c39f06f.ctex"]
 
 [params]
 

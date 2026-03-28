@@ -50,7 +50,7 @@ func _ready() -> void:
 			size = custom_minimum_size
 		_on_resized()
 	frame_texture.stretch_mode = TextureRect.STRETCH_SCALE
-	art_texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
+	art_texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_apply_card_theme()
 	_refresh()
 
@@ -125,7 +125,7 @@ func _begin_drag() -> void:
 	_kill_tween()
 	z_index = 200
 	rotation_degrees = 0.0
-	scale = Vector2.ONE * 1.06
+	scale = Vector2.ONE * 1.2
 	drag_started.emit(self)
 	drag_moved.emit(self, get_global_mouse_position())
 
@@ -246,7 +246,7 @@ func _apply_rest_transform(animated: bool) -> void:
 	if _mouse_inside:
 		target_position -= Vector2(0, 24)
 		target_rotation = lerpf(_rest_rotation, 0.0, 0.5)
-		target_scale = Vector2.ONE * 1.08
+		target_scale = Vector2.ONE * 1.2
 		z_index = maxi(_rest_z_index, 100)
 	else:
 		z_index = _rest_z_index

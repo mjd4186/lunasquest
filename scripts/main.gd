@@ -7,11 +7,12 @@ const COURAGE_PER_TURN := 3
 
 const CARD_UI_SCENE := preload("res://scenes/card_ui.tscn")
 const COMPOSITION_SIZE := Vector2(1920, 1080)
-const BASE_PREVIEW_CARD_SIZE := Vector2(244, 366)
+const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
 const CARD_ART_DIRECTORY := "res://cardart"
 const CARD_ART_PLACEHOLDER_SIZE := Vector2i(768, 1024)
+const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
 const HAND_SIDE_PADDING := 32.0
 const HAND_CARD_OVERLAP := 0.72
@@ -277,8 +278,9 @@ func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
 		if seen_slugs.has(slug):
 			continue
 		seen_slugs[slug] = true
-		var resource_path: String = _card_art_resource_path(slug)
-		if not FileAccess.file_exists(resource_path):
+		var existing_resource_path: String = _find_existing_card_art_path(slug)
+		if existing_resource_path.is_empty():
+			var resource_path: String = _card_art_placeholder_path(slug)
 			_write_card_art_placeholder(resource_path, slug)
 	_load_card_art_textures()
 
@@ -310,8 +312,21 @@ func _card_slug_for(card: Dictionary) -> String:
 	return slug.trim_suffix("-") if not slug.is_empty() else "card"
 
 
-func _card_art_resource_path(slug: String) -> String:
+func _card_art_resource_path(slug: String, extension: String) -> String:
+	return "%s/%s.%s" % [CARD_ART_DIRECTORY, slug, extension]
+
+
+func _card_art_placeholder_path(slug: String) -> String:
 	return "%s/%s.jpg" % [CARD_ART_DIRECTORY, slug]
+
+
+func _find_existing_card_art_path(slug: String) -> String:
+	for extension_variant in CARD_ART_EXTENSIONS:
+		var extension: String = String(extension_variant)
+		var resource_path: String = _card_art_resource_path(slug, extension)
+		if FileAccess.file_exists(resource_path):
+			return resource_path
+	return ""
 
 
 func _decorate_card(card: Dictionary) -> Dictionary:
@@ -329,6 +344,7 @@ func _load_card_art_textures() -> void:
 	if card_art_dir == null:
 		return
 
+	var discovered_slugs: Dictionary = {}
 	card_art_dir.list_dir_begin()
 	while true:
 		var file_name: String = card_art_dir.get_next()
@@ -336,14 +352,22 @@ func _load_card_art_textures() -> void:
 			break
 		if card_art_dir.current_is_dir():
 			continue
-		if file_name.get_extension().to_lower() != "jpg":
+		var extension: String = file_name.get_extension().to_lower()
+		if extension != "png" and extension != "jpg":
 			continue
 
 		var slug: String = file_name.get_basename().to_lower()
-		var texture: Texture2D = _load_card_art_texture(_card_art_resource_path(slug))
+		discovered_slugs[slug] = true
+	card_art_dir.list_dir_end()
+
+	for slug_variant in discovered_slugs.keys():
+		var slug: String = String(slug_variant)
+		var resource_path: String = _find_existing_card_art_path(slug)
+		if resource_path.is_empty():
+			continue
+		var texture: Texture2D = _load_card_art_texture(resource_path)
 		if texture != null:
 			card_art_textures[slug] = texture
-	card_art_dir.list_dir_end()
 
 
 func _load_card_art_texture(resource_path: String) -> Texture2D:

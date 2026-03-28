@@ -156,15 +156,15 @@ horizontal_alignment = 1
 text = "Intent: Attack for 7"
 
 [node name="PreviewDock" type="Control" parent="CombatCanvas"]
-offset_left = 54.0
+offset_left = 18.0
 offset_top = 632.0
-offset_right = 316.0
-offset_bottom = 1038.0
+offset_right = 322.0
+offset_bottom = 1090.0
 mouse_filter = 2
 
 [node name="PreviewTitleLabel" type="Label" parent="CombatCanvas/PreviewDock"]
 unique_name_in_owner = true
-offset_right = 262.0
+offset_right = 304.0
 offset_bottom = 30.0
 mouse_filter = 2
 text = "Hover a card"
@@ -173,8 +173,8 @@ horizontal_alignment = 1
 [node name="PreviewCardAnchor" type="CenterContainer" parent="CombatCanvas/PreviewDock"]
 unique_name_in_owner = true
 offset_top = 38.0
-offset_right = 262.0
-offset_bottom = 406.0
+offset_right = 304.0
+offset_bottom = 458.0
 mouse_filter = 2
 
 [node name="RightColumn" type="VBoxContainer" parent="CombatCanvas"]

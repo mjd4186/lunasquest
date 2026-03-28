@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://duvdw8c70dqj6"
-path="res://.godot/imported/calming-drops.jpg-6fa67b0c55f13b5332858e6a04498a92.ctex"
+uid="uid://di0pojeed5hjt"
+path="res://.godot/imported/calming-drops.png-fd163538db572ed2382b1d54c8806a30.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/calming-drops.jpg"
-dest_files=["res://.godot/imported/calming-drops.jpg-6fa67b0c55f13b5332858e6a04498a92.ctex"]
+source_file="res://cardart/calming-drops.png"
+dest_files=["res://.godot/imported/calming-drops.png-fd163538db572ed2382b1d54c8806a30.ctex"]
 
 [params]
 
