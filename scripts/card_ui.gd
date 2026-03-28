@@ -13,6 +13,7 @@ const DRAG_THRESHOLD := 10.0
 
 @onready var shadow: ColorRect = %Shadow
 @onready var frame_texture: TextureRect = %FrameTexture
+@onready var art_texture_rect: TextureRect = %ArtTexture
 @onready var cost_badge: PanelContainer = %CostBadge
 @onready var cost_label: Label = %CostLabel
 @onready var description_label: Label = %DescriptionLabel
@@ -49,6 +50,7 @@ func _ready() -> void:
 			size = custom_minimum_size
 		_on_resized()
 	frame_texture.stretch_mode = TextureRect.STRETCH_SCALE
+	art_texture_rect.stretch_mode = TextureRect.STRETCH_SCALE
 	_apply_card_theme()
 	_refresh()
 
@@ -206,6 +208,9 @@ func _refresh() -> void:
 	frame_texture.texture = CARD_BACK_TEXTURE if face_down else CARD_FRONT_TEXTURE
 
 	var show_front_content := not face_down and not card_data.is_empty()
+	var art_texture: Texture2D = card_data.get("art_texture", null)
+	art_texture_rect.visible = show_front_content and art_texture != null
+	art_texture_rect.texture = art_texture
 	cost_badge.visible = show_front_content
 	description_label.visible = show_front_content
 	name_label.visible = show_front_content

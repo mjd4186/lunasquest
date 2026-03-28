@@ -10,6 +10,8 @@ const COMPOSITION_SIZE := Vector2(1920, 1080)
 const BASE_PREVIEW_CARD_SIZE := Vector2(244, 366)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
+const CARD_ART_DIRECTORY := "res://cardart"
+const CARD_ART_PLACEHOLDER_SIZE := Vector2i(768, 1024)
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
 const HAND_SIDE_PADDING := 32.0
 const HAND_CARD_OVERLAP := 0.72
@@ -102,6 +104,7 @@ var preview_card_size := BASE_PREVIEW_CARD_SIZE
 var pile_card_size := BASE_PILE_CARD_SIZE
 var hand_card_size := BASE_HAND_CARD_SIZE
 var hovered_pile := ""
+var card_art_textures: Dictionary = {}
 
 
 func _ready() -> void:
@@ -157,37 +160,37 @@ func _start_battle() -> void:
 
 func _build_starting_deck() -> Array[Dictionary]:
 	var deck: Array[Dictionary] = []
-	deck.append_array(_make_copies({
+	var yip := {
 		"name": "Yip!",
 		"type": "attack",
 		"cost": 1,
 		"damage": 6,
 		"text": "Deal 6 damage.",
-	}, 5))
-	deck.append_array(_make_copies({
+	}
+	var cower := {
 		"name": "Cower",
 		"type": "block",
 		"cost": 1,
 		"block": 5,
 		"text": "Gain 5 block.",
-	}, 4))
-	deck.append_array(_make_copies({
+	}
+	var peek_around_corner := {
 		"name": "Peek Around Corner",
 		"type": "skill",
 		"cost": 2,
 		"damage": 7,
 		"block": 7,
 		"text": "Deal 7 damage and gain 7 block.",
-	}, 2))
-	deck.append_array(_make_copies({
+	}
+	var find_courage := {
 		"name": "Find Courage",
 		"type": "skill",
 		"cost": 0,
 		"draw": 2,
 		"block": 2,
 		"text": "Gain 2 block. Draw 2 cards.",
-	}, 1))
-	deck.append_array(_make_copies({
+	}
+	var favorite_sweater := {
 		"name": "Favorite Sweater",
 		"type": "buff",
 		"cost": 2,
@@ -197,8 +200,8 @@ func _build_starting_deck() -> Array[Dictionary]:
 			"text": "At the start of your turn, gain 2 block.",
 			"block_on_turn_start": 2,
 		},
-	}, 1))
-	deck.append_array(_make_copies({
+	}
+	var calming_drops := {
 		"name": "Calming Drops",
 		"type": "buff",
 		"cost": 1,
@@ -208,8 +211,8 @@ func _build_starting_deck() -> Array[Dictionary]:
 			"text": "At the start of your turn, gain 1 courage.",
 			"courage_on_turn_start": 1,
 		},
-	}, 1))
-	deck.append_array(_make_copies({
+	}
+	var squeaky_hedgehog := {
 		"name": "Squeaky Hedgehog",
 		"type": "buff",
 		"cost": 2,
@@ -219,7 +222,24 @@ func _build_starting_deck() -> Array[Dictionary]:
 			"text": "Your attacks deal 1 extra damage.",
 			"attack_bonus": 1,
 		},
-	}, 1))
+	}
+	var card_templates: Array[Dictionary] = [
+		yip,
+		cower,
+		peek_around_corner,
+		find_courage,
+		favorite_sweater,
+		calming_drops,
+		squeaky_hedgehog,
+	]
+	_ensure_card_art_library(card_templates)
+	deck.append_array(_make_copies(yip, 5))
+	deck.append_array(_make_copies(cower, 4))
+	deck.append_array(_make_copies(peek_around_corner, 2))
+	deck.append_array(_make_copies(find_courage, 1))
+	deck.append_array(_make_copies(favorite_sweater, 1))
+	deck.append_array(_make_copies(calming_drops, 1))
+	deck.append_array(_make_copies(squeaky_hedgehog, 1))
 	return deck
 
 
@@ -245,8 +265,124 @@ func _build_starting_monster_buffs() -> Array[Dictionary]:
 func _make_copies(card: Dictionary, amount: int) -> Array[Dictionary]:
 	var copies: Array[Dictionary] = []
 	for i in amount:
-		copies.append(card.duplicate(true))
+		copies.append(_decorate_card(card))
 	return copies
+
+
+func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
+	_ensure_card_art_directory()
+	var seen_slugs: Dictionary = {}
+	for card in card_templates:
+		var slug := _card_slug_for(card)
+		if seen_slugs.has(slug):
+			continue
+		seen_slugs[slug] = true
+		var resource_path := _card_art_resource_path(slug)
+		if not FileAccess.file_exists(resource_path):
+			_write_card_art_placeholder(resource_path, slug)
+	_load_card_art_textures()
+
+
+func _ensure_card_art_directory() -> void:
+	DirAccess.make_dir_absolute(ProjectSettings.globalize_path(CARD_ART_DIRECTORY))
+
+
+func _card_slug_for(card: Dictionary) -> String:
+	var explicit_slug := String(card.get("art_slug", "")).strip_edges()
+	if not explicit_slug.is_empty():
+		return explicit_slug.to_lower()
+
+	var source_name := String(card.get("name", "")).to_lower()
+	var slug := ""
+	var last_was_separator := false
+	for i in source_name.length():
+		var character := source_name.substr(i, 1)
+		var code := source_name.unicode_at(i)
+		var is_ascii_letter := code >= 97 and code <= 122
+		var is_digit := code >= 48 and code <= 57
+		if is_ascii_letter or is_digit:
+			slug += character
+			last_was_separator = false
+		elif not slug.is_empty() and not last_was_separator:
+			slug += "-"
+			last_was_separator = true
+
+	return slug.trim_suffix("-") if not slug.is_empty() else "card"
+
+
+func _card_art_resource_path(slug: String) -> String:
+	return "%s/%s.jpg" % [CARD_ART_DIRECTORY, slug]
+
+
+func _decorate_card(card: Dictionary) -> Dictionary:
+	var decorated := card.duplicate(true)
+	var slug := _card_slug_for(decorated)
+	decorated["art_slug"] = slug
+	if card_art_textures.has(slug):
+		decorated["art_texture"] = card_art_textures[slug]
+	return decorated
+
+
+func _load_card_art_textures() -> void:
+	card_art_textures.clear()
+	var card_art_dir := DirAccess.open(CARD_ART_DIRECTORY)
+	if card_art_dir == null:
+		return
+
+	card_art_dir.list_dir_begin()
+	while true:
+		var file_name := card_art_dir.get_next()
+		if file_name.is_empty():
+			break
+		if card_art_dir.current_is_dir():
+			continue
+		if file_name.get_extension().to_lower() != "jpg":
+			continue
+
+		var slug := file_name.get_basename().to_lower()
+		var texture := _load_card_art_texture(_card_art_resource_path(slug))
+		if texture != null:
+			card_art_textures[slug] = texture
+	card_art_dir.list_dir_end()
+
+
+func _load_card_art_texture(resource_path: String) -> Texture2D:
+	var image := Image.new()
+	var load_error := image.load(ProjectSettings.globalize_path(resource_path))
+	if load_error != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
+
+func _write_card_art_placeholder(resource_path: String, slug: String) -> void:
+	var image := Image.create(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y, false, Image.FORMAT_RGB8)
+	var seed := abs(slug.hash())
+	var hue := float(seed % 1000) / 1000.0
+	var base_color := Color.from_hsv(hue, 0.34, 0.78)
+	var accent_color := Color.from_hsv(fmod(hue + 0.11, 1.0), 0.28, 0.56)
+
+	image.fill(base_color)
+	for y in CARD_ART_PLACEHOLDER_SIZE.y:
+		for x in CARD_ART_PLACEHOLDER_SIZE.x:
+			var stripe_band := int((x + y) / 56.0) % 2
+			if stripe_band == 0:
+				image.set_pixel(x, y, image.get_pixel(x, y).darkened(0.07))
+
+	var inset := 64
+	for y in range(inset, CARD_ART_PLACEHOLDER_SIZE.y - inset):
+		for x in range(inset, CARD_ART_PLACEHOLDER_SIZE.x - inset):
+			if x < inset + 10 or x >= CARD_ART_PLACEHOLDER_SIZE.x - inset - 10 or y < inset + 10 or y >= CARD_ART_PLACEHOLDER_SIZE.y - inset - 10:
+				image.set_pixel(x, y, accent_color)
+
+	var center := Vector2(CARD_ART_PLACEHOLDER_SIZE.x * 0.5, CARD_ART_PLACEHOLDER_SIZE.y * 0.48)
+	var radius := minf(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y) * 0.22
+	for y in CARD_ART_PLACEHOLDER_SIZE.y:
+		for x in CARD_ART_PLACEHOLDER_SIZE.x:
+			var distance := Vector2(x, y).distance_to(center)
+			if distance <= radius:
+				image.set_pixel(x, y, accent_color.lightened(0.12))
+
+	image.save_jpg(ProjectSettings.globalize_path(resource_path), 0.9)
 
 
 func _shuffle(cards: Array[Dictionary]) -> void:
