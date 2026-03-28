@@ -598,13 +598,13 @@ func _check_battle_end() -> bool:
 
 
 func update_ui() -> void:
-	player_hp_label.text = "❤️ HP %d / %d" % [player_hp, STARTING_HP]
-	player_courage_label.text = "✨ Courage %d / %d" % [player_courage, COURAGE_PER_TURN]
-	player_block_label.text = "🛡️ Block %d" % player_block
+	player_hp_label.text = "HP %d / %d" % [player_hp, STARTING_HP]
+	player_courage_label.text = "Courage %d / %d" % [player_courage, COURAGE_PER_TURN]
+	player_block_label.text = "Block %d" % player_block
 	player_status_label.text = _format_statuses(player_statuses, "Steady tail. No debuffs.")
 	player_buffs_label.text = _format_buffs(player_buffs, "No comfort items yet.")
-	monster_hp_label.text = "❤️ HP %d / %d" % [monster_hp, MONSTER_STARTING_HP]
-	monster_block_label.text = "🛡️ Block %d" % monster_block
+	monster_hp_label.text = "HP %d / %d" % [monster_hp, MONSTER_STARTING_HP]
+	monster_block_label.text = "Block %d" % monster_block
 	monster_status_label.text = _format_statuses(monster_statuses, "Only restless shadows.")
 	monster_buffs_label.text = _format_buffs(monster_buffs, "No dark traits.")
 
@@ -649,32 +649,32 @@ func _format_buffs(buffs: Array[Dictionary], empty_text: String) -> String:
 
 func _build_intent_text() -> String:
 	if monster_hp <= 0:
-		return "🐾 Victory. The hallway falls quiet."
+		return "Victory. The hallway falls quiet."
 	if player_hp <= 0:
-		return "💀 Defeat. The hallway looms overhead."
+		return "Defeat. The hallway looms overhead."
 	if pending_intent.is_empty():
 		return "The dark is gathering itself."
 
 	var summary := ""
 	match pending_intent.get("kind", ""):
 		"attack":
-			summary = "⚔️ Attack for %d" % _modified_attack_damage(pending_intent["damage"], "monster")
+			summary = "Attack for %d" % _modified_attack_damage(pending_intent["damage"], "monster")
 		"block":
-			summary = "🛡️ Gain %d block" % pending_intent["block"]
+			summary = "Gain %d block" % pending_intent["block"]
 		"attack_debuff":
-			summary = "⚔️ Attack for %d and 😵 %s %d" % [
+			summary = "Attack for %d and %s %d" % [
 				_modified_attack_damage(pending_intent["damage"], "monster"),
 				String(pending_intent["status"]).capitalize(),
 				pending_intent["amount"],
 			]
 		"block_debuff":
-			summary = "🛡️ Gain %d block and 🕸️ %s %d" % [
+			summary = "Gain %d block and %s %d" % [
 				pending_intent["block"],
 				String(pending_intent["status"]).capitalize(),
 				pending_intent["amount"],
 			]
 		_:
-			summary = "❔ Unknown intent"
+			summary = "Unknown intent"
 
 	return "%s\n%s" % [summary, pending_intent.get("name", "")]
 
