@@ -6,6 +6,10 @@ const HAND_SIZE := 5
 const COURAGE_PER_TURN := 3
 
 const CARD_UI_SCENE := preload("res://scenes/card_ui.tscn")
+const ICON_HEART := preload("res://assets/icons/lucide/heart.svg")
+const ICON_SHIELD := preload("res://assets/icons/lucide/shield.svg")
+const ICON_SPARKLES := preload("res://assets/icons/lucide/sparkles.svg")
+const ICON_MOON_STAR := preload("res://assets/icons/lucide/moon-star.svg")
 const COMPOSITION_SIZE := Vector2(1920, 1080)
 const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
@@ -117,6 +121,7 @@ func _ready() -> void:
 
 	_create_static_card_views()
 	_apply_visual_theme()
+	_install_lucide_icons()
 	_apply_fixed_layout_metrics()
 	_update_canvas_transform()
 	_start_battle()
@@ -709,6 +714,66 @@ func _create_static_card_views() -> void:
 	discard_pile_card_view.rotation_degrees = 8.0
 	discard_pile_card_view.mouse_entered.connect(_on_discard_pile_mouse_entered)
 	discard_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
+
+
+func _install_lucide_icons() -> void:
+	_attach_icon_before_label(player_hp_label, ICON_HEART, Vector2(26, 26), 8)
+	_attach_icon_before_label(player_block_label, ICON_SHIELD, Vector2(26, 26), 8)
+	_attach_icon_before_label(player_courage_label, ICON_SPARKLES, Vector2(26, 26), 8)
+	_attach_icon_before_label(monster_hp_label, ICON_HEART, Vector2(18, 18), 6)
+	_attach_icon_before_label(monster_block_label, ICON_SHIELD, Vector2(18, 18), 6)
+	_replace_stage_emoji_with_icon()
+
+
+func _attach_icon_before_label(label: Label, icon_texture: Texture2D, icon_size: Vector2, separation: int) -> void:
+	var parent := label.get_parent()
+	if parent == null:
+		return
+	if parent is HBoxContainer and String(parent.name).begins_with("IconRow"):
+		return
+
+	var child_index := label.get_index()
+	parent.remove_child(label)
+
+	var row := HBoxContainer.new()
+	row.name = "IconRow%s" % label.name
+	row.theme_override_constants.separation = separation
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.size_flags_horizontal = label.size_flags_horizontal
+	row.size_flags_vertical = label.size_flags_vertical
+	parent.add_child(row)
+	parent.move_child(row, child_index)
+
+	var icon := TextureRect.new()
+	icon.name = "%sIcon" % label.name
+	icon.texture = icon_texture
+	icon.custom_minimum_size = icon_size
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+	row.add_child(label)
+
+
+func _replace_stage_emoji_with_icon() -> void:
+	var parent := monster_emoji_label.get_parent()
+	if parent == null:
+		return
+	if parent.has_node("MonsterStageIcon"):
+		monster_emoji_label.visible = false
+		return
+
+	var icon := TextureRect.new()
+	icon.name = "MonsterStageIcon"
+	icon.texture = ICON_MOON_STAR
+	icon.custom_minimum_size = Vector2(84, 84)
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	parent.add_child(icon)
+	parent.move_child(icon, monster_emoji_label.get_index())
+	monster_emoji_label.visible = false
 
 
 func _apply_visual_theme() -> void:

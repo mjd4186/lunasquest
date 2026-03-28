@@ -1,0 +1,44 @@
+Glyphs removed for web compatibility
+
+These were rendering as missing-character boxes in the browser build.
+Use this list to replace them with real icon assets.
+
+1. ❤️
+   Meaning: HP
+   Used in: Player HP label, Monster HP label
+
+2. ✨
+   Meaning: Courage
+   Used in: Player Courage label
+
+3. 🛡️
+   Meaning: Block
+   Used in: Player Block label, Monster Block label, monster intent summary for block actions
+
+4. 🐾
+   Meaning: Victory
+   Used in: Intent panel victory message
+
+5. 💀
+   Meaning: Defeat
+   Used in: Intent panel defeat message
+
+6. ⚔️
+   Meaning: Attack
+   Used in: Intent panel attack summary, attack+debuff summary
+
+7. 😵
+   Meaning: Debuff / status effect
+   Used in: Intent panel attack+debuff summary
+
+8. 🕸️
+   Meaning: Debuff / status effect
+   Used in: Intent panel block+debuff summary
+
+9. ❔
+   Meaning: Unknown intent
+   Used in: Intent panel fallback summary
+
+10. 🌑
+    Meaning: Dark Hallway stage icon
+    Used in: Center stage label above "The Dark Hallway"
