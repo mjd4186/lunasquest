@@ -17,8 +17,6 @@ const DRAG_THRESHOLD := 10.0
 @onready var cost_label: Label = %CostLabel
 @onready var description_label: Label = %DescriptionLabel
 @onready var name_label: Label = %NameLabel
-@onready var type_label: Label = %TypeLabel
-@onready var stats_label: Label = %StatsLabel
 
 var card_data: Dictionary = {}
 var card_index := -1
@@ -176,10 +174,8 @@ func _apply_card_theme() -> void:
 	badge_style.shadow_size = 6
 	cost_badge.add_theme_stylebox_override("panel", badge_style)
 
-	_style_text(description_label, 15, Color(0.145098, 0.0941176, 0.0313726, 1.0), Color(1.0, 0.964706, 0.835294, 0.95), 2)
+	_style_text(description_label, 15, Color(0.956863, 0.917647, 0.784314, 1.0), Color(0, 0, 0, 1.0), 4)
 	_style_text(name_label, 17, Color(0.278431, 0.172549, 0.0470588, 1.0), Color(1.0, 0.972549, 0.882353, 0.95), 2)
-	_style_text(type_label, 13, Color(0.901961, 0.835294, 0.564706, 1.0), Color(0.0980392, 0.0666667, 0.027451, 0.9), 2)
-	_style_text(stats_label, 13, Color(0.956863, 0.913725, 0.760784, 1.0), Color(0.0862745, 0.054902, 0.0235294, 0.95), 2)
 	_style_text(cost_label, 20, Color(1.0, 0.952941, 0.815686, 1.0), Color(0.160784, 0.0901961, 0.0235294, 1.0), 3)
 
 	shadow.color = Color(0, 0, 0, 0.34)
@@ -194,15 +190,11 @@ func _style_text(label: Label, font_size: int, font_color: Color, outline_color:
 
 func _update_text_scale() -> void:
 	var scale_factor: float = clampf(size.y / DEFAULT_CARD_SIZE.y, 0.5, 1.2)
-	description_label.add_theme_font_size_override("font_size", maxi(10, roundi(15 * scale_factor)))
-	name_label.add_theme_font_size_override("font_size", maxi(11, roundi(17 * scale_factor)))
-	type_label.add_theme_font_size_override("font_size", maxi(9, roundi(13 * scale_factor)))
-	stats_label.add_theme_font_size_override("font_size", maxi(9, roundi(13 * scale_factor)))
+	description_label.add_theme_font_size_override("font_size", maxi(11, roundi(16 * scale_factor)))
+	name_label.add_theme_font_size_override("font_size", maxi(12, roundi(18 * scale_factor)))
 	cost_label.add_theme_font_size_override("font_size", maxi(12, roundi(20 * scale_factor)))
-	description_label.add_theme_constant_override("outline_size", maxi(1, roundi(2 * scale_factor)))
+	description_label.add_theme_constant_override("outline_size", maxi(3, roundi(4 * scale_factor)))
 	name_label.add_theme_constant_override("outline_size", maxi(1, roundi(2 * scale_factor)))
-	type_label.add_theme_constant_override("outline_size", maxi(1, roundi(2 * scale_factor)))
-	stats_label.add_theme_constant_override("outline_size", maxi(1, roundi(2 * scale_factor)))
 	cost_label.add_theme_constant_override("outline_size", maxi(1, roundi(3 * scale_factor)))
 
 
@@ -213,8 +205,6 @@ func _refresh() -> void:
 	cost_badge.visible = show_front_content
 	description_label.visible = show_front_content
 	name_label.visible = show_front_content
-	type_label.visible = show_front_content
-	stats_label.visible = show_front_content
 
 	if not show_front_content:
 		_apply_enabled_state()
@@ -223,24 +213,7 @@ func _refresh() -> void:
 	cost_label.text = str(card_data.get("cost", 0))
 	name_label.text = card_data.get("name", "")
 	description_label.text = card_data.get("text", "")
-	type_label.text = String(card_data.get("type", "skill")).capitalize()
-	stats_label.text = _build_stats_text(card_data)
 	_apply_enabled_state()
-
-
-func _build_stats_text(data: Dictionary) -> String:
-	var parts: Array[String] = []
-
-	if data.has("damage"):
-		parts.append("DMG %d" % data["damage"])
-	if data.has("block"):
-		parts.append("BLK %d" % data["block"])
-	if data.has("draw"):
-		parts.append("DRAW %d" % data["draw"])
-	if data.get("type", "") == "buff":
-		parts.append("PERSIST")
-
-	return "" if parts.is_empty() else " | ".join(parts)
 
 
 func _apply_enabled_state() -> void:
