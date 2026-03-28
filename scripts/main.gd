@@ -160,21 +160,21 @@ func _start_battle() -> void:
 
 func _build_starting_deck() -> Array[Dictionary]:
 	var deck: Array[Dictionary] = []
-	var yip := {
+	var yip: Dictionary = {
 		"name": "Yip!",
 		"type": "attack",
 		"cost": 1,
 		"damage": 6,
 		"text": "Deal 6 damage.",
 	}
-	var cower := {
+	var cower: Dictionary = {
 		"name": "Cower",
 		"type": "block",
 		"cost": 1,
 		"block": 5,
 		"text": "Gain 5 block.",
 	}
-	var peek_around_corner := {
+	var peek_around_corner: Dictionary = {
 		"name": "Peek Around Corner",
 		"type": "skill",
 		"cost": 2,
@@ -182,7 +182,7 @@ func _build_starting_deck() -> Array[Dictionary]:
 		"block": 7,
 		"text": "Deal 7 damage and gain 7 block.",
 	}
-	var find_courage := {
+	var find_courage: Dictionary = {
 		"name": "Find Courage",
 		"type": "skill",
 		"cost": 0,
@@ -190,7 +190,7 @@ func _build_starting_deck() -> Array[Dictionary]:
 		"block": 2,
 		"text": "Gain 2 block. Draw 2 cards.",
 	}
-	var favorite_sweater := {
+	var favorite_sweater: Dictionary = {
 		"name": "Favorite Sweater",
 		"type": "buff",
 		"cost": 2,
@@ -201,7 +201,7 @@ func _build_starting_deck() -> Array[Dictionary]:
 			"block_on_turn_start": 2,
 		},
 	}
-	var calming_drops := {
+	var calming_drops: Dictionary = {
 		"name": "Calming Drops",
 		"type": "buff",
 		"cost": 1,
@@ -212,7 +212,7 @@ func _build_starting_deck() -> Array[Dictionary]:
 			"courage_on_turn_start": 1,
 		},
 	}
-	var squeaky_hedgehog := {
+	var squeaky_hedgehog: Dictionary = {
 		"name": "Squeaky Hedgehog",
 		"type": "buff",
 		"cost": 2,
@@ -273,11 +273,11 @@ func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
 	_ensure_card_art_directory()
 	var seen_slugs: Dictionary = {}
 	for card in card_templates:
-		var slug := _card_slug_for(card)
+		var slug: String = _card_slug_for(card)
 		if seen_slugs.has(slug):
 			continue
 		seen_slugs[slug] = true
-		var resource_path := _card_art_resource_path(slug)
+		var resource_path: String = _card_art_resource_path(slug)
 		if not FileAccess.file_exists(resource_path):
 			_write_card_art_placeholder(resource_path, slug)
 	_load_card_art_textures()
@@ -325,13 +325,13 @@ func _decorate_card(card: Dictionary) -> Dictionary:
 
 func _load_card_art_textures() -> void:
 	card_art_textures.clear()
-	var card_art_dir := DirAccess.open(CARD_ART_DIRECTORY)
+	var card_art_dir: DirAccess = DirAccess.open(CARD_ART_DIRECTORY)
 	if card_art_dir == null:
 		return
 
 	card_art_dir.list_dir_begin()
 	while true:
-		var file_name := card_art_dir.get_next()
+		var file_name: String = card_art_dir.get_next()
 		if file_name.is_empty():
 			break
 		if card_art_dir.current_is_dir():
@@ -339,27 +339,27 @@ func _load_card_art_textures() -> void:
 		if file_name.get_extension().to_lower() != "jpg":
 			continue
 
-		var slug := file_name.get_basename().to_lower()
-		var texture := _load_card_art_texture(_card_art_resource_path(slug))
+		var slug: String = file_name.get_basename().to_lower()
+		var texture: Texture2D = _load_card_art_texture(_card_art_resource_path(slug))
 		if texture != null:
 			card_art_textures[slug] = texture
 	card_art_dir.list_dir_end()
 
 
 func _load_card_art_texture(resource_path: String) -> Texture2D:
-	var image := Image.new()
-	var load_error := image.load(ProjectSettings.globalize_path(resource_path))
+	var image: Image = Image.new()
+	var load_error: int = image.load(ProjectSettings.globalize_path(resource_path))
 	if load_error != OK:
 		return null
 	return ImageTexture.create_from_image(image)
 
 
 func _write_card_art_placeholder(resource_path: String, slug: String) -> void:
-	var image := Image.create(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y, false, Image.FORMAT_RGB8)
-	var seed := abs(slug.hash())
-	var hue := float(seed % 1000) / 1000.0
-	var base_color := Color.from_hsv(hue, 0.34, 0.78)
-	var accent_color := Color.from_hsv(fmod(hue + 0.11, 1.0), 0.28, 0.56)
+	var image: Image = Image.create(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y, false, Image.FORMAT_RGB8)
+	var seed: int = abs(slug.hash())
+	var hue: float = float(seed % 1000) / 1000.0
+	var base_color: Color = Color.from_hsv(hue, 0.34, 0.78)
+	var accent_color: Color = Color.from_hsv(fmod(hue + 0.11, 1.0), 0.28, 0.56)
 
 	image.fill(base_color)
 	for y in CARD_ART_PLACEHOLDER_SIZE.y:
@@ -368,17 +368,17 @@ func _write_card_art_placeholder(resource_path: String, slug: String) -> void:
 			if stripe_band == 0:
 				image.set_pixel(x, y, image.get_pixel(x, y).darkened(0.07))
 
-	var inset := 64
+	var inset: int = 64
 	for y in range(inset, CARD_ART_PLACEHOLDER_SIZE.y - inset):
 		for x in range(inset, CARD_ART_PLACEHOLDER_SIZE.x - inset):
 			if x < inset + 10 or x >= CARD_ART_PLACEHOLDER_SIZE.x - inset - 10 or y < inset + 10 or y >= CARD_ART_PLACEHOLDER_SIZE.y - inset - 10:
 				image.set_pixel(x, y, accent_color)
 
-	var center := Vector2(CARD_ART_PLACEHOLDER_SIZE.x * 0.5, CARD_ART_PLACEHOLDER_SIZE.y * 0.48)
-	var radius := minf(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y) * 0.22
+	var center: Vector2 = Vector2(CARD_ART_PLACEHOLDER_SIZE.x * 0.5, CARD_ART_PLACEHOLDER_SIZE.y * 0.48)
+	var radius: float = minf(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y) * 0.22
 	for y in CARD_ART_PLACEHOLDER_SIZE.y:
 		for x in CARD_ART_PLACEHOLDER_SIZE.x:
-			var distance := Vector2(x, y).distance_to(center)
+			var distance: float = Vector2(x, y).distance_to(center)
 			if distance <= radius:
 				image.set_pixel(x, y, accent_color.lightened(0.12))
 
