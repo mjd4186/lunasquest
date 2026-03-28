@@ -40,14 +40,13 @@ jobs:
           godot_executable_download_url: ${{ env.GODOT_EXECUTABLE_URL }}
           godot_export_templates_download_url: ${{ env.GODOT_EXPORT_TEMPLATES_URL }}
           relative_project_path: ./
-          use_preset_export_path: true
           presets_to_export: Web
           cache: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: build/web
+          path: ${{ steps.export.outputs.build_directory }}/Web
 
       - name: Deploy to GitHub Pages
         id: deployment
