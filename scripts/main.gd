@@ -6,15 +6,21 @@ const HAND_SIZE := 5
 const COURAGE_PER_TURN := 3
 
 const CARD_UI_SCENE := preload("res://scenes/card_ui.tscn")
-const BASE_PREVIEW_CARD_SIZE := Vector2(210, 315)
-const BASE_PILE_CARD_SIZE := Vector2(118, 177)
-const BASE_HAND_CARD_SIZE := Vector2(150, 225)
-const HAND_SIDE_PADDING := 20.0
+const COMPOSITION_SIZE := Vector2(1920, 1080)
+const BASE_PREVIEW_CARD_SIZE := Vector2(244, 366)
+const BASE_PILE_CARD_SIZE := Vector2(156, 234)
+const BASE_HAND_CARD_SIZE := Vector2(208, 312)
+const END_TURN_BUTTON_SIZE := Vector2(188, 64)
+const HAND_SIDE_PADDING := 32.0
 const HAND_CARD_OVERLAP := 0.72
-const HAND_FAN_ROTATION := 8.0
+const HAND_FAN_ROTATION := 11.0
+const HAND_FAN_ARC := 48.0
+const HAND_BASE_LIFT := 12.0
 
+@onready var combat_canvas: Control = %CombatCanvas
 @onready var title_label: Label = %TitleLabel
 @onready var flavor_label: Label = %FlavorLabel
+@onready var monster_name_label: Label = %MonsterName
 @onready var preview_title_label: Label = %PreviewTitleLabel
 @onready var preview_card_anchor: CenterContainer = %PreviewCardAnchor
 @onready var draw_pile_card_anchor: CenterContainer = %DrawPileCardAnchor
@@ -22,6 +28,7 @@ const HAND_FAN_ROTATION := 8.0
 @onready var player_hp_label: Label = %PlayerHPLabel
 @onready var player_courage_label: Label = %PlayerCourageLabel
 @onready var player_block_label: Label = %PlayerBlockLabel
+@onready var player_name_label: Label = %PlayerName
 @onready var player_status_label: Label = %PlayerStatusLabel
 @onready var player_buffs_label: Label = %PlayerBuffsLabel
 @onready var monster_hp_label: Label = %MonsterHPLabel
@@ -40,12 +47,15 @@ const HAND_FAN_ROTATION := 8.0
 @onready var reset_button: Button = %ResetButton
 @onready var pile_hover_panel: PanelContainer = %PileHoverPanel
 @onready var pile_hover_label: Label = %PileHoverLabel
+@onready var monster_stage_label: Label = %MonsterStageLabel
+@onready var monster_emoji_label: Label = %MonsterEmojiLabel
 
 @onready var title_panel: PanelContainer = %TitlePanel
 @onready var monster_panel: PanelContainer = %MonsterPanel
 @onready var intent_panel: PanelContainer = %IntentPanel
 @onready var player_panel: PanelContainer = %PlayerPanel
 @onready var log_panel: PanelContainer = %LogPanel
+@onready var log_title_label: Label = get_node("CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox/LogTitle")
 
 var rng := RandomNumberGenerator.new()
 
@@ -96,6 +106,7 @@ var hovered_pile := ""
 
 func _ready() -> void:
 	rng.randomize()
+	combat_canvas.size = COMPOSITION_SIZE
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	hand_area.resized.connect(_on_hand_area_resized)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
@@ -103,8 +114,10 @@ func _ready() -> void:
 
 	_create_static_card_views()
 	_apply_visual_theme()
-	_update_responsive_layout()
+	_apply_fixed_layout_metrics()
+	_update_canvas_transform()
 	_start_battle()
+	call_deferred("_update_canvas_transform")
 
 
 func _start_battle() -> void:
@@ -129,6 +142,9 @@ func _start_battle() -> void:
 	log_label.clear()
 	title_label.text = "Scared Little Dog vs. The Dark Hallway"
 	flavor_label.text = "Every creak sounds enormous. Every shadow looks hungry."
+	monster_name_label.text = "The Dark Hallway"
+	player_name_label.text = "The Little Dog"
+	monster_stage_label.text = "The Dark Hallway"
 
 	draw_pile = _build_starting_deck()
 	discard_pile.clear()
@@ -590,6 +606,7 @@ func _create_static_card_views() -> void:
 	draw_pile_card_view.draggable = false
 	draw_pile_card_view.set_hover_enabled(false)
 	draw_pile_card_view.set_face_down(true)
+	draw_pile_card_view.rotation_degrees = -8.0
 	draw_pile_card_view.mouse_entered.connect(_on_draw_pile_mouse_entered)
 	draw_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
 
@@ -600,73 +617,100 @@ func _create_static_card_views() -> void:
 	discard_pile_card_view.draggable = false
 	discard_pile_card_view.set_hover_enabled(false)
 	discard_pile_card_view.set_face_down(true)
+	discard_pile_card_view.rotation_degrees = 8.0
 	discard_pile_card_view.mouse_entered.connect(_on_discard_pile_mouse_entered)
 	discard_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
 
 
 func _apply_visual_theme() -> void:
-	play_area_idle_style = _make_panel_style(Color(0, 0, 0, 0.0), Color(1.0, 0.843137, 0.509804, 0.0), 22)
-	play_area_hover_style = _make_panel_style(Color(0.0470588, 0.0862745, 0.129412, 0.08), Color(1.0, 0.847059, 0.588235, 0.55), 22)
-	play_area_valid_style = _make_panel_style(Color(0.113725, 0.180392, 0.117647, 0.08), Color(0.976471, 0.866667, 0.466667, 0.92), 22)
+	play_area_idle_style = _make_panel_style(Color(0, 0, 0, 0.0), Color(1.0, 0.847059, 0.588235, 0.0), 44, 0, 0)
+	play_area_hover_style = _make_panel_style(Color(0.0509804, 0.0784314, 0.117647, 0.12), Color(1.0, 0.847059, 0.588235, 0.34), 44, 3, 22)
+	play_area_valid_style = _make_panel_style(Color(0.0980392, 0.145098, 0.0901961, 0.18), Color(0.976471, 0.866667, 0.466667, 0.72), 44, 4, 26)
 
-	title_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0313726, 0.0392157, 0.0705882, 0.74), Color(1.0, 0.839216, 0.596078, 0.28), 18))
-	monster_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0431373, 0.0470588, 0.0862745, 0.72), Color(1.0, 0.839216, 0.596078, 0.22), 22))
-	intent_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.113725, 0.0745098, 0.0352941, 0.78), Color(0.996078, 0.854902, 0.556863, 0.4), 22))
+	title_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0235294, 0.0313726, 0.054902, 0.54), Color(1.0, 0.839216, 0.596078, 0.16), 26, 2, 18))
+	monster_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0313726, 0.0392157, 0.0666667, 0.58), Color(1.0, 0.839216, 0.596078, 0.2), 30, 2, 20))
+	intent_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.105882, 0.0745098, 0.0392157, 0.66), Color(0.996078, 0.854902, 0.556863, 0.32), 28, 2, 18))
 	play_area.add_theme_stylebox_override("panel", play_area_idle_style)
-	player_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0431373, 0.0470588, 0.0862745, 0.74), Color(1.0, 0.839216, 0.596078, 0.22), 22))
-	log_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.027451, 0.0313726, 0.054902, 0.78), Color(1.0, 0.839216, 0.596078, 0.18), 18))
-	pile_hover_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0156863, 0.027451, 0.0470588, 0.88), Color(1.0, 0.839216, 0.596078, 0.28), 14))
+	player_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0352941, 0.0431373, 0.0705882, 0.52), Color(1.0, 0.839216, 0.596078, 0.16), 24, 2, 16))
+	log_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.027451, 0.0470588, 0.56), Color(1.0, 0.839216, 0.596078, 0.14), 22, 2, 16))
+	var pile_hover_style := _make_panel_style(Color(0.0156863, 0.027451, 0.0470588, 0.92), Color(1.0, 0.839216, 0.596078, 0.26), 18, 2, 12)
+	pile_hover_style.content_margin_left = 14
+	pile_hover_style.content_margin_top = 10
+	pile_hover_style.content_margin_right = 14
+	pile_hover_style.content_margin_bottom = 10
+	pile_hover_panel.add_theme_stylebox_override("panel", pile_hover_style)
 
-	_apply_scaled_typography()
+	_apply_button_theme(end_turn_button, Color(0.239216, 0.337255, 0.454902, 0.96), Color(0.956863, 0.835294, 0.560784, 1.0), Color(0.294118, 0.403922, 0.545098, 1.0))
+	_apply_button_theme(reset_button, Color(0.321569, 0.188235, 0.117647, 0.96), Color(0.956863, 0.835294, 0.560784, 1.0), Color(0.403922, 0.239216, 0.14902, 1.0))
 
-	var monster_stage_label: Label = get_node("OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox/MonsterStageLabel")
-	var monster_emoji_label: Label = get_node("OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox/MonsterEmojiLabel")
+	_apply_fixed_typography()
+
 	monster_stage_label.add_theme_color_override("font_color", Color(0.980392, 0.937255, 0.811765, 1.0))
 	monster_stage_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 1.0))
-	monster_stage_label.add_theme_constant_override("outline_size", 3)
+	monster_stage_label.add_theme_constant_override("outline_size", 4)
+	monster_emoji_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 0.95))
+	monster_emoji_label.add_theme_constant_override("outline_size", 4)
 
 	for label in [player_hp_label, player_block_label, player_courage_label, player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
 		label.add_theme_color_override("font_color", Color(0.968627, 0.941176, 0.854902, 1.0))
-		label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.9))
+		label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
 		label.add_theme_constant_override("outline_size", 2)
 
 	log_label.add_theme_color_override("default_color", Color(0.964706, 0.937255, 0.870588, 1.0))
+	log_label.add_theme_font_size_override("normal_font_size", 17)
+	log_label.add_theme_font_size_override("bold_font_size", 18)
+	log_label.add_theme_font_size_override("italics_font_size", 17)
 	pile_hover_label.add_theme_color_override("font_color", Color(0.980392, 0.94902, 0.870588, 1.0))
 	pile_hover_label.add_theme_color_override("font_outline_color", Color(0.0235294, 0.027451, 0.0431373, 0.95))
 	pile_hover_label.add_theme_constant_override("outline_size", 2)
 
 
-func _apply_scaled_typography() -> void:
-	_style_header(title_label, roundi(24 * layout_scale))
-	_style_support_text(flavor_label, roundi(14 * layout_scale))
-	_style_header(turn_label, roundi(20 * layout_scale))
-	_style_header(preview_title_label, roundi(16 * layout_scale))
-	_style_header(intent_label, roundi(17 * layout_scale))
-	_style_header(play_instruction_label, roundi(16 * layout_scale))
-	pile_hover_label.add_theme_font_size_override("font_size", roundi(15 * layout_scale))
-	draw_pile_label.add_theme_font_size_override("font_size", roundi(20 * layout_scale))
-	discard_pile_label.add_theme_font_size_override("font_size", roundi(20 * layout_scale))
-	var monster_stage_label: Label = get_node("OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox/MonsterStageLabel")
-	var monster_emoji_label: Label = get_node("OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox/MonsterEmojiLabel")
-	monster_stage_label.add_theme_font_size_override("font_size", roundi(30 * layout_scale))
-	monster_emoji_label.add_theme_font_size_override("font_size", roundi(56 * layout_scale))
+func _apply_button_theme(button: Button, fill: Color, border: Color, hover_fill: Color) -> void:
+	var normal := _make_panel_style(fill, border, 28, 3, 14)
+	var hover := _make_panel_style(hover_fill, border, 28, 3, 16)
+	var pressed := _make_panel_style(fill.darkened(0.14), border, 28, 3, 10)
+	var disabled := _make_panel_style(fill.darkened(0.35), Color(border.r, border.g, border.b, 0.45), 28, 2, 8)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("disabled", disabled)
+	button.add_theme_color_override("font_color", Color(0.980392, 0.94902, 0.870588, 1.0))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color(0.980392, 0.94902, 0.870588, 1.0))
+	button.add_theme_color_override("font_disabled_color", Color(0.85, 0.82, 0.74, 0.76))
+	button.add_theme_font_size_override("font_size", 24)
+
+
+func _apply_fixed_typography() -> void:
+	_style_header(title_label, 28)
+	_style_support_text(flavor_label, 16)
+	_style_header(monster_name_label, 24)
+	_style_header(player_name_label, 22)
+	_style_header(turn_label, 22)
+	_style_header(intent_label, 20)
+	_style_header(preview_title_label, 18)
+	_style_support_text(play_instruction_label, 18)
+	_style_header(log_title_label, 21)
+	pile_hover_label.add_theme_font_size_override("font_size", 18)
+	draw_pile_label.add_theme_font_size_override("font_size", 24)
+	discard_pile_label.add_theme_font_size_override("font_size", 24)
+	monster_stage_label.add_theme_font_size_override("font_size", 54)
+	monster_emoji_label.add_theme_font_size_override("font_size", 84)
 	for label in [player_hp_label, player_block_label, player_courage_label]:
-		label.add_theme_font_size_override("font_size", roundi(18 * layout_scale))
+		label.add_theme_font_size_override("font_size", 24)
+	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label]:
+		_style_support_text(label, 17)
 
 
-func _update_responsive_layout() -> void:
-	var viewport_size: Vector2 = get_viewport_rect().size
-	layout_scale = clampf(minf(viewport_size.x / 1600.0, viewport_size.y / 900.0), 0.82, 1.34)
-	var hand_height: float = clampf(viewport_size.y * 0.235, 180.0, 280.0)
-	hand_card_size = Vector2(round(hand_height / 1.5), round(hand_height))
-	preview_card_size = hand_card_size * 1.42
-	pile_card_size = hand_card_size * 0.82
-	preview_card_anchor.custom_minimum_size = preview_card_size + Vector2(28, 20)
-	draw_pile_card_anchor.custom_minimum_size = pile_card_size + Vector2(20, 20)
-	discard_pile_card_anchor.custom_minimum_size = pile_card_size + Vector2(20, 20)
-	end_turn_button.custom_minimum_size = Vector2(120, roundi(44 * layout_scale))
-	reset_button.custom_minimum_size = end_turn_button.custom_minimum_size
-	_apply_scaled_typography()
+func _apply_fixed_layout_metrics() -> void:
+	preview_card_size = BASE_PREVIEW_CARD_SIZE
+	pile_card_size = BASE_PILE_CARD_SIZE
+	hand_card_size = BASE_HAND_CARD_SIZE
+	preview_card_anchor.custom_minimum_size = preview_card_size
+	draw_pile_card_anchor.custom_minimum_size = pile_card_size
+	discard_pile_card_anchor.custom_minimum_size = pile_card_size
+	end_turn_button.custom_minimum_size = END_TURN_BUTTON_SIZE
+	reset_button.custom_minimum_size = END_TURN_BUTTON_SIZE
 
 	if preview_card_view:
 		preview_card_view.set_display_size(preview_card_size)
@@ -676,22 +720,31 @@ func _update_responsive_layout() -> void:
 		discard_pile_card_view.set_display_size(pile_card_size)
 	for card_view in hand_card_views:
 		card_view.set_display_size(hand_card_size)
-	_layout_hand_cards(false)
+
+
+func _update_canvas_transform() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+
+	layout_scale = minf(viewport_size.x / COMPOSITION_SIZE.x, viewport_size.y / COMPOSITION_SIZE.y)
+	combat_canvas.scale = Vector2.ONE * layout_scale
+	combat_canvas.position = (viewport_size - (COMPOSITION_SIZE * layout_scale)) * 0.5
 	_update_hovered_pile_tooltip()
 
 
 func _on_viewport_size_changed() -> void:
-	_update_responsive_layout()
+	_update_canvas_transform()
 
 
-func _make_panel_style(background: Color, border: Color, radius: int) -> StyleBoxFlat:
+func _make_panel_style(background: Color, border: Color, radius: int, border_width := 2, shadow_size := 10) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
 	style.border_color = border
-	style.set_border_width_all(2)
+	style.set_border_width_all(border_width)
 	style.set_corner_radius_all(radius)
-	style.shadow_color = Color(0, 0, 0, 0.24)
-	style.shadow_size = 10
+	style.shadow_color = Color(0, 0, 0, 0.26)
+	style.shadow_size = shadow_size
 	return style
 
 
@@ -705,7 +758,7 @@ func _style_header(label: Label, font_size: int) -> void:
 func _style_support_text(label: Label, font_size: int) -> void:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", Color(0.894118, 0.839216, 0.705882, 1.0))
-	label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.9))
+	label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
 	label.add_theme_constant_override("outline_size", 2)
 
 
@@ -730,10 +783,10 @@ func _show_pile_hover(pile_name: String, count: int, anchor: Control) -> void:
 	pile_hover_panel.size = pile_hover_panel.get_combined_minimum_size()
 	pile_hover_panel.visible = true
 	var anchor_rect: Rect2 = anchor.get_global_rect()
-	var tooltip_size: Vector2 = pile_hover_panel.size
+	var tooltip_size: Vector2 = pile_hover_panel.size * layout_scale
 	var desired_position := Vector2(
 		anchor_rect.get_center().x - (tooltip_size.x * 0.5),
-		anchor_rect.position.y - tooltip_size.y - 10.0
+		anchor_rect.position.y - tooltip_size.y - 14.0
 	)
 	var viewport_size := get_viewport_rect().size
 	pile_hover_panel.global_position = Vector2(
@@ -833,7 +886,7 @@ func _layout_hand_cards(animated := true) -> void:
 	var card_width: float = hand_card_size.x
 	var card_height: float = hand_card_size.y
 	var count: int = hand_card_views.size()
-	var side_padding: float = HAND_SIDE_PADDING * layout_scale
+	var side_padding: float = HAND_SIDE_PADDING
 	var usable_width: float = maxf(0.0, hand_area.size.x - (side_padding * 2.0) - card_width)
 	var step: float = 0.0
 
@@ -842,17 +895,16 @@ func _layout_hand_cards(animated := true) -> void:
 
 	var total_width: float = card_width + (step * float(maxi(count - 1, 0)))
 	var start_x: float = maxf(side_padding, (hand_area.size.x - total_width) * 0.5)
-	var base_y: float = hand_area.size.y - card_height - (6.0 * layout_scale)
-	var midpoint: float = float(maxi(count - 1, 1)) * 0.5
+	var base_y: float = hand_area.size.y - card_height - HAND_BASE_LIFT
 
 	for i in count:
 		var card_view: CardUI = hand_card_views[i]
-		var normalized: float = 0.0 if count == 1 else ((float(i) / float(count - 1)) * 2.0) - 1.0
-		var arc_offset: float = absf(normalized) * (20.0 * layout_scale)
+		var t := 0.5 if count == 1 else float(i) / float(count - 1)
+		var normalized: float = 0.0 if count == 1 else (t * 2.0) - 1.0
+		var arc_offset: float = pow(absf(normalized), 1.35) * HAND_FAN_ARC
 		var target_position: Vector2 = Vector2(start_x + (step * i), base_y + arc_offset)
-		var rotation: float = 0.0 if count == 1 else lerpf(-HAND_FAN_ROTATION, HAND_FAN_ROTATION, float(i) / float(count - 1))
-		var z_order: int = int((float(count) - absf(float(i) - midpoint)) * 10.0)
-		card_view.set_rest_transform(target_position, rotation, z_order, animated)
+		var rotation: float = 0.0 if count == 1 else lerpf(-HAND_FAN_ROTATION, HAND_FAN_ROTATION, t)
+		card_view.set_rest_transform(target_position, rotation, 20 + i, animated)
 
 
 func _set_pinned_preview(card: Dictionary, title: String) -> void:

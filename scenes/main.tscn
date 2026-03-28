@@ -33,223 +33,215 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.0235294, 0.0313726, 0.054902, 0.22)
+color = Color(0.0156863, 0.0196078, 0.0392157, 0.18)
 
-[node name="OverlayRoot" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="CombatCanvas" type="Control" parent="."]
+unique_name_in_owner = true
+offset_right = 1920.0
+offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="TopHud" type="HBoxContainer" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 24.0
-offset_top = 20.0
-offset_right = -24.0
-offset_bottom = 146.0
-grow_horizontal = 2
-theme_override_constants/separation = 18
+[node name="TopHud" type="Control" parent="CombatCanvas"]
+offset_right = 1920.0
+offset_bottom = 220.0
+mouse_filter = 2
 
-[node name="TitlePanel" type="PanelContainer" parent="OverlayRoot/TopHud"]
+[node name="TitlePanel" type="PanelContainer" parent="CombatCanvas/TopHud"]
 unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(360, 0)
+offset_left = 42.0
+offset_top = 30.0
+offset_right = 552.0
+offset_bottom = 182.0
+mouse_filter = 2
 
-[node name="TitleMargin" type="MarginContainer" parent="OverlayRoot/TopHud/TitlePanel"]
+[node name="TitleMargin" type="MarginContainer" parent="CombatCanvas/TopHud/TitlePanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
 
-[node name="TitleVBox" type="VBoxContainer" parent="OverlayRoot/TopHud/TitlePanel/TitleMargin"]
+[node name="TitleVBox" type="VBoxContainer" parent="CombatCanvas/TopHud/TitlePanel/TitleMargin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="OverlayRoot/TopHud/TitlePanel/TitleMargin/TitleVBox"]
+[node name="TitleLabel" type="Label" parent="CombatCanvas/TopHud/TitlePanel/TitleMargin/TitleVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Scared Little Dog vs. The Dark Hallway"
+autowrap_mode = 3
 
-[node name="FlavorLabel" type="Label" parent="OverlayRoot/TopHud/TitlePanel/TitleMargin/TitleVBox"]
+[node name="FlavorLabel" type="Label" parent="CombatCanvas/TopHud/TitlePanel/TitleMargin/TitleVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "Every creak sounds enormous. Every shadow looks hungry."
 
-[node name="MonsterPanel" type="PanelContainer" parent="OverlayRoot/TopHud"]
+[node name="MonsterPanel" type="PanelContainer" parent="CombatCanvas/TopHud"]
 unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
+offset_left = 624.0
+offset_top = 34.0
+offset_right = 1252.0
+offset_bottom = 188.0
+mouse_filter = 2
 
-[node name="MonsterMargin" type="MarginContainer" parent="OverlayRoot/TopHud/MonsterPanel"]
+[node name="MonsterMargin" type="MarginContainer" parent="CombatCanvas/TopHud/MonsterPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
 
-[node name="MonsterVBox" type="VBoxContainer" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin"]
+[node name="MonsterVBox" type="VBoxContainer" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin"]
 layout_mode = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 6
 
-[node name="MonsterName" type="Label" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+[node name="MonsterName" type="Label" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "The Dark Hallway"
 
-[node name="MonsterHPLabel" type="Label" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+[node name="MonsterHPLabel" type="Label" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "HP: 40 / 40"
 
-[node name="MonsterBlockLabel" type="Label" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+[node name="MonsterBlockLabel" type="Label" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Block: 0"
 
-[node name="MonsterStatusLabel" type="Label" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+[node name="MonsterStatusLabel" type="Label" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "Only restless shadows."
 
-[node name="MonsterBuffsLabel" type="Label" parent="OverlayRoot/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
+[node name="MonsterBuffsLabel" type="Label" parent="CombatCanvas/TopHud/MonsterPanel/MonsterMargin/MonsterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "Buffs: Shadow Teeth: Its attacks deal 2 extra damage."
 
-[node name="IntentPanel" type="PanelContainer" parent="OverlayRoot/TopHud"]
+[node name="IntentPanel" type="PanelContainer" parent="CombatCanvas/TopHud"]
 unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(320, 0)
+offset_left = 1294.0
+offset_top = 44.0
+offset_right = 1548.0
+offset_bottom = 190.0
+mouse_filter = 2
 
-[node name="IntentMargin" type="MarginContainer" parent="OverlayRoot/TopHud/IntentPanel"]
+[node name="IntentMargin" type="MarginContainer" parent="CombatCanvas/TopHud/IntentPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="IntentVBox" type="VBoxContainer" parent="OverlayRoot/TopHud/IntentPanel/IntentMargin"]
+[node name="IntentVBox" type="VBoxContainer" parent="CombatCanvas/TopHud/IntentPanel/IntentMargin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
-[node name="TurnLabel" type="Label" parent="OverlayRoot/TopHud/IntentPanel/IntentMargin/IntentVBox"]
+[node name="TurnLabel" type="Label" parent="CombatCanvas/TopHud/IntentPanel/IntentMargin/IntentVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 text = "Turn 1 - Player"
 
-[node name="IntentLabel" type="Label" parent="OverlayRoot/TopHud/IntentPanel/IntentMargin/IntentVBox"]
+[node name="IntentLabel" type="Label" parent="CombatCanvas/TopHud/IntentPanel/IntentMargin/IntentVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 horizontal_alignment = 1
 text = "Intent: Attack for 7"
 
-[node name="PreviewDock" type="Control" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 1
-anchor_bottom = 1.0
-offset_left = 26.0
-offset_top = 164.0
-offset_right = 286.0
-offset_bottom = -244.0
+[node name="PreviewDock" type="Control" parent="CombatCanvas"]
+offset_left = 54.0
+offset_top = 632.0
+offset_right = 316.0
+offset_bottom = 1038.0
+mouse_filter = 2
 
-[node name="PreviewTitleLabel" type="Label" parent="OverlayRoot/PreviewDock"]
+[node name="PreviewTitleLabel" type="Label" parent="CombatCanvas/PreviewDock"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 28.0
-grow_horizontal = 2
+offset_right = 262.0
+offset_bottom = 30.0
+mouse_filter = 2
 text = "Hover a card"
+horizontal_alignment = 1
 
-[node name="PreviewCardAnchor" type="CenterContainer" parent="OverlayRoot/PreviewDock"]
+[node name="PreviewCardAnchor" type="CenterContainer" parent="CombatCanvas/PreviewDock"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 34.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_top = 38.0
+offset_right = 262.0
+offset_bottom = 406.0
+mouse_filter = 2
 
-[node name="RightColumn" type="VBoxContainer" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 1.0
-anchor_top = 0.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -286.0
-offset_top = 170.0
-offset_right = -24.0
-offset_bottom = -22.0
-grow_horizontal = 0
-grow_vertical = 2
-theme_override_constants/separation = 16
+[node name="RightColumn" type="VBoxContainer" parent="CombatCanvas"]
+offset_left = 1580.0
+offset_top = 42.0
+offset_right = 1876.0
+offset_bottom = 556.0
+mouse_filter = 2
+theme_override_constants/separation = 18
 
-[node name="PlayerPanel" type="PanelContainer" parent="OverlayRoot/RightColumn"]
+[node name="PlayerPanel" type="PanelContainer" parent="CombatCanvas/RightColumn"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 
-[node name="PlayerMargin" type="MarginContainer" parent="OverlayRoot/RightColumn/PlayerPanel"]
+[node name="PlayerMargin" type="MarginContainer" parent="CombatCanvas/RightColumn/PlayerPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
+theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
+theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="PlayerVBox" type="VBoxContainer" parent="OverlayRoot/RightColumn/PlayerPanel/PlayerMargin"]
+[node name="PlayerVBox" type="VBoxContainer" parent="CombatCanvas/RightColumn/PlayerPanel/PlayerMargin"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="PlayerName" type="Label" parent="OverlayRoot/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
+[node name="PlayerName" type="Label" parent="CombatCanvas/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "The Little Dog"
 
-[node name="PlayerStatusLabel" type="Label" parent="OverlayRoot/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
+[node name="PlayerStatusLabel" type="Label" parent="CombatCanvas/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "Steady tail. No debuffs."
 
-[node name="PlayerBuffsLabel" type="Label" parent="OverlayRoot/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
+[node name="PlayerBuffsLabel" type="Label" parent="CombatCanvas/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3
 text = "No comfort items yet."
 
-[node name="LogPanel" type="PanelContainer" parent="OverlayRoot/RightColumn"]
+[node name="LogPanel" type="PanelContainer" parent="CombatCanvas/RightColumn"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+mouse_filter = 2
 
-[node name="LogMargin" type="MarginContainer" parent="OverlayRoot/RightColumn/LogPanel"]
+[node name="LogMargin" type="MarginContainer" parent="CombatCanvas/RightColumn/LogPanel"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/margin_left = 16
+theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
+theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="LogVBox" type="VBoxContainer" parent="OverlayRoot/RightColumn/LogPanel/LogMargin"]
+[node name="LogVBox" type="VBoxContainer" parent="CombatCanvas/RightColumn/LogPanel/LogMargin"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="LogTitle" type="Label" parent="OverlayRoot/RightColumn/LogPanel/LogMargin/LogVBox"]
+[node name="LogTitle" type="Label" parent="CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox"]
 layout_mode = 2
 text = "Combat Log"
 
-[node name="LogLabel" type="RichTextLabel" parent="OverlayRoot/RightColumn/LogPanel/LogMargin/LogVBox"]
+[node name="LogLabel" type="RichTextLabel" parent="CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -258,21 +250,15 @@ scroll_following = true
 fit_content = false
 text = ""
 
-[node name="PlayArea" type="PanelContainer" parent="OverlayRoot"]
+[node name="PlayArea" type="PanelContainer" parent="CombatCanvas"]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 270.0
-offset_top = 158.0
-offset_right = -318.0
-offset_bottom = -232.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = 264.0
+offset_top = 160.0
+offset_right = 1656.0
+offset_bottom = 736.0
 mouse_filter = 2
 
-[node name="MonsterStageCenter" type="CenterContainer" parent="OverlayRoot/PlayArea"]
+[node name="MonsterStageCenter" type="CenterContainer" parent="CombatCanvas/PlayArea"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -281,59 +267,58 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MonsterStageVBox" type="VBoxContainer" parent="OverlayRoot/PlayArea/MonsterStageCenter"]
+[node name="MonsterStageVBox" type="VBoxContainer" parent="CombatCanvas/PlayArea/MonsterStageCenter"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 12
 
-[node name="MonsterEmojiLabel" type="Label" parent="OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox"]
+[node name="MonsterEmojiLabel" type="Label" parent="CombatCanvas/PlayArea/MonsterStageCenter/MonsterStageVBox"]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 text = "🌑"
 
-[node name="MonsterStageLabel" type="Label" parent="OverlayRoot/PlayArea/MonsterStageCenter/MonsterStageVBox"]
+[node name="MonsterStageLabel" type="Label" parent="CombatCanvas/PlayArea/MonsterStageCenter/MonsterStageVBox"]
+unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
 text = "The Dark Hallway"
 
-[node name="PlayInstructionLabel" type="Label" parent="OverlayRoot/PlayArea"]
+[node name="PlayInstructionLabel" type="Label" parent="CombatCanvas/PlayArea"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -40.0
-offset_right = -24.0
-offset_bottom = -10.0
+offset_left = 160.0
+offset_top = -62.0
+offset_right = -160.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 0
 horizontal_alignment = 1
 autowrap_mode = 3
 text = "Drag a card onto the hallway rug to play it."
 
-[node name="DrawPileDock" type="Control" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 5
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 28.0
-offset_top = -228.0
-offset_right = 168.0
-offset_bottom = -24.0
-grow_vertical = 0
+[node name="DrawPileDock" type="Control" parent="CombatCanvas"]
+offset_left = 304.0
+offset_top = 790.0
+offset_right = 476.0
+offset_bottom = 1046.0
+mouse_filter = 2
 
-[node name="DrawPileCardAnchor" type="CenterContainer" parent="OverlayRoot/DrawPileDock"]
+[node name="DrawPileCardAnchor" type="CenterContainer" parent="CombatCanvas/DrawPileDock"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -28.0
+offset_bottom = -26.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="DrawPileLabel" type="Label" parent="OverlayRoot/DrawPileDock"]
+[node name="DrawPileLabel" type="Label" parent="CombatCanvas/DrawPileDock"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
@@ -345,29 +330,25 @@ grow_horizontal = 2
 horizontal_alignment = 1
 text = "0"
 
-[node name="DiscardPileDock" type="Control" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 9
-anchor_left = 1.0
-anchor_bottom = 1.0
-offset_left = -470.0
-offset_top = -420.0
-offset_right = -330.0
-offset_bottom = -216.0
-grow_horizontal = 0
-grow_vertical = 0
+[node name="DiscardPileDock" type="Control" parent="CombatCanvas"]
+offset_left = 1444.0
+offset_top = 790.0
+offset_right = 1616.0
+offset_bottom = 1046.0
+mouse_filter = 2
 
-[node name="DiscardPileCardAnchor" type="CenterContainer" parent="OverlayRoot/DiscardPileDock"]
+[node name="DiscardPileCardAnchor" type="CenterContainer" parent="CombatCanvas/DiscardPileDock"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -28.0
+offset_bottom = -26.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="DiscardPileLabel" type="Label" parent="OverlayRoot/DiscardPileDock"]
+[node name="DiscardPileLabel" type="Label" parent="CombatCanvas/DiscardPileDock"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 12
@@ -379,76 +360,72 @@ grow_horizontal = 2
 horizontal_alignment = 1
 text = "0"
 
-[node name="BottomHud" type="Control" parent="OverlayRoot"]
-layout_mode = 1
-anchors_preset = 13
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 228.0
-offset_top = -276.0
-offset_right = -306.0
-offset_bottom = -16.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="BottomHud" type="Control" parent="CombatCanvas"]
+offset_left = 428.0
+offset_top = 676.0
+offset_right = 1492.0
+offset_bottom = 1050.0
+mouse_filter = 2
 
-[node name="HudTopRow" type="HBoxContainer" parent="OverlayRoot/BottomHud"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_right = 0.0
-offset_bottom = 40.0
-grow_horizontal = 2
-theme_override_constants/separation = 14
+[node name="HudTopRow" type="HBoxContainer" parent="CombatCanvas/BottomHud"]
+offset_right = 1064.0
+offset_bottom = 64.0
+mouse_filter = 2
+theme_override_constants/separation = 18
 
-[node name="PlayerHPLabel" type="Label" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="HudSpacerLeft" type="Control" parent="CombatCanvas/BottomHud/HudTopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerHPLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "HP 28 / 28"
 
-[node name="PlayerBlockLabel" type="Label" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="PlayerBlockLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Block 0"
 
-[node name="PlayerCourageLabel" type="Label" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="PlayerCourageLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Courage 3 / 3"
 
-[node name="HudSpacer" type="Control" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="HudSpacer" type="Control" parent="CombatCanvas/BottomHud/HudTopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ResetButton" type="Button" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="ResetButton" type="Button" parent="CombatCanvas/BottomHud/HudTopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 visible = false
 text = "Try Again"
 
-[node name="EndTurnButton" type="Button" parent="OverlayRoot/BottomHud/HudTopRow"]
+[node name="EndTurnButton" type="Button" parent="CombatCanvas/BottomHud/HudTopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "End Turn"
 
-[node name="HandArea" type="Control" parent="OverlayRoot/BottomHud"]
+[node name="HandArea" type="Control" parent="CombatCanvas/BottomHud"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 42.0
+offset_top = 60.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="PileHoverPanel" type="PanelContainer" parent="OverlayRoot"]
+[node name="PileHoverPanel" type="PanelContainer" parent="CombatCanvas"]
 unique_name_in_owner = true
 visible = false
-layout_mode = 0
-offset_right = 120.0
-offset_bottom = 44.0
+offset_right = 140.0
+offset_bottom = 52.0
+mouse_filter = 2
 
-[node name="PileHoverLabel" type="Label" parent="OverlayRoot/PileHoverPanel"]
+[node name="PileHoverLabel" type="Label" parent="CombatCanvas/PileHoverPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 horizontal_alignment = 1
