@@ -10,6 +10,9 @@ const ICON_HEART := preload("res://assets/icons/lucide/heart.svg")
 const ICON_SHIELD := preload("res://assets/icons/lucide/shield.svg")
 const ICON_SPARKLES := preload("res://assets/icons/lucide/sparkles.svg")
 const ICON_MOON_STAR := preload("res://assets/icons/lucide/moon-star.svg")
+const ICON_SWORDS := preload("res://assets/icons/lucide/swords.svg")
+const ICON_ALERT := preload("res://assets/icons/lucide/triangle-alert.svg")
+const ICON_SKULL := preload("res://assets/icons/lucide/skull.svg")
 const COMPOSITION_SIZE := Vector2(1920, 1080)
 const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
@@ -62,6 +65,8 @@ const HAND_BASE_LIFT := 12.0
 @onready var player_panel: PanelContainer = %PlayerPanel
 @onready var log_panel: PanelContainer = %LogPanel
 @onready var log_title_label: Label = get_node("CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox/LogTitle")
+@onready var player_vbox: VBoxContainer = get_node("CombatCanvas/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox")
+@onready var intent_vbox: VBoxContainer = get_node("CombatCanvas/TopHud/IntentPanel/IntentMargin/IntentVBox")
 
 var rng := RandomNumberGenerator.new()
 
@@ -109,6 +114,10 @@ var pile_card_size := BASE_PILE_CARD_SIZE
 var hand_card_size := BASE_HAND_CARD_SIZE
 var hovered_pile := ""
 var card_art_textures: Dictionary = {}
+var player_panel_hp_label: Label
+var player_panel_block_label: Label
+var player_panel_courage_label: Label
+var intent_icon_rect: TextureRect
 
 
 func _ready() -> void:
@@ -606,6 +615,12 @@ func update_ui() -> void:
 	player_hp_label.text = "HP %d / %d" % [player_hp, STARTING_HP]
 	player_courage_label.text = "Courage %d / %d" % [player_courage, COURAGE_PER_TURN]
 	player_block_label.text = "Block %d" % player_block
+	if player_panel_hp_label:
+		player_panel_hp_label.text = "%d / %d" % [player_hp, STARTING_HP]
+	if player_panel_block_label:
+		player_panel_block_label.text = str(player_block)
+	if player_panel_courage_label:
+		player_panel_courage_label.text = "%d / %d" % [player_courage, COURAGE_PER_TURN]
 	player_status_label.text = _format_statuses(player_statuses, "Steady tail. No debuffs.")
 	player_buffs_label.text = _format_buffs(player_buffs, "No comfort items yet.")
 	monster_hp_label.text = "HP %d / %d" % [monster_hp, MONSTER_STARTING_HP]
@@ -620,6 +635,7 @@ func update_ui() -> void:
 	else:
 		turn_label.text = "Turn %d - %s" % [turn_number, "Player" if current_turn == "player" else "Monster"]
 
+	_update_intent_icon()
 	intent_label.text = _build_intent_text()
 	draw_pile_label.text = str(draw_pile.size())
 	discard_pile_label.text = str(discard_pile.size())
@@ -722,6 +738,8 @@ func _install_lucide_icons() -> void:
 	_attach_icon_before_label(player_courage_label, ICON_SPARKLES, Vector2(26, 26), 8)
 	_attach_icon_before_label(monster_hp_label, ICON_HEART, Vector2(18, 18), 6)
 	_attach_icon_before_label(monster_block_label, ICON_SHIELD, Vector2(18, 18), 6)
+	_install_player_quick_stats()
+	_install_intent_icon()
 	_replace_stage_emoji_with_icon()
 
 
@@ -753,6 +771,90 @@ func _attach_icon_before_label(label: Label, icon_texture: Texture2D, icon_size:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(icon)
 	row.add_child(label)
+
+
+func _install_player_quick_stats() -> void:
+	if player_vbox.has_node("PlayerQuickStats"):
+		return
+
+	var quick_stats := HBoxContainer.new()
+	quick_stats.name = "PlayerQuickStats"
+	quick_stats.theme_override_constants.separation = 12
+	quick_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	player_vbox.add_child(quick_stats)
+	player_vbox.move_child(quick_stats, player_name_label.get_index() + 1)
+
+	player_panel_hp_label = _create_icon_stat(quick_stats, "PlayerPanelHP", ICON_HEART, Vector2(16, 16), "28 / 28", 15)
+	player_panel_block_label = _create_icon_stat(quick_stats, "PlayerPanelBlock", ICON_SHIELD, Vector2(16, 16), "0", 15)
+	player_panel_courage_label = _create_icon_stat(quick_stats, "PlayerPanelCourage", ICON_SPARKLES, Vector2(16, 16), "3 / 3", 15)
+
+
+func _create_icon_stat(parent: Control, base_name: String, icon_texture: Texture2D, icon_size: Vector2, initial_text: String, font_size: int) -> Label:
+	var row := HBoxContainer.new()
+	row.name = "%sRow" % base_name
+	row.theme_override_constants.separation = 6
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(row)
+
+	var icon := TextureRect.new()
+	icon.name = "%sIcon" % base_name
+	icon.texture = icon_texture
+	icon.custom_minimum_size = icon_size
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(icon)
+
+	var label := Label.new()
+	label.name = "%sLabel" % base_name
+	label.text = initial_text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", Color(0.968627, 0.941176, 0.854902, 1.0))
+	label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
+	label.add_theme_constant_override("outline_size", 2)
+	row.add_child(label)
+	return label
+
+
+func _install_intent_icon() -> void:
+	if intent_vbox.has_node("IntentIcon"):
+		intent_icon_rect = intent_vbox.get_node("IntentIcon") as TextureRect
+		return
+
+	intent_icon_rect = TextureRect.new()
+	intent_icon_rect.name = "IntentIcon"
+	intent_icon_rect.custom_minimum_size = Vector2(28, 28)
+	intent_icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	intent_icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	intent_icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	intent_vbox.add_child(intent_icon_rect)
+	intent_vbox.move_child(intent_icon_rect, turn_label.get_index() + 1)
+
+
+func _update_intent_icon() -> void:
+	if intent_icon_rect == null:
+		return
+
+	if monster_hp <= 0:
+		intent_icon_rect.texture = ICON_SPARKLES
+		return
+	if player_hp <= 0:
+		intent_icon_rect.texture = ICON_SKULL
+		return
+	if pending_intent.is_empty():
+		intent_icon_rect.texture = ICON_MOON_STAR
+		return
+
+	match pending_intent.get("kind", ""):
+		"attack":
+			intent_icon_rect.texture = ICON_SWORDS
+		"block":
+			intent_icon_rect.texture = ICON_SHIELD
+		"attack_debuff", "block_debuff":
+			intent_icon_rect.texture = ICON_ALERT
+		_:
+			intent_icon_rect.texture = ICON_MOON_STAR
 
 
 func _replace_stage_emoji_with_icon() -> void:
