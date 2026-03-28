@@ -11,7 +11,6 @@ const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
 const CARD_ART_DIRECTORY := "res://cardart"
-const CARD_ART_PLACEHOLDER_SIZE := Vector2i(768, 1024)
 const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
 const HAND_SIDE_PADDING := 32.0
@@ -271,22 +270,7 @@ func _make_copies(card: Dictionary, amount: int) -> Array[Dictionary]:
 
 
 func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
-	_ensure_card_art_directory()
-	var seen_slugs: Dictionary = {}
-	for card in card_templates:
-		var slug: String = _card_slug_for(card)
-		if seen_slugs.has(slug):
-			continue
-		seen_slugs[slug] = true
-		var existing_resource_path: String = _find_existing_card_art_path(slug)
-		if existing_resource_path.is_empty():
-			var resource_path: String = _card_art_placeholder_path(slug)
-			_write_card_art_placeholder(resource_path, slug)
-	_load_card_art_textures()
-
-
-func _ensure_card_art_directory() -> void:
-	DirAccess.make_dir_absolute(ProjectSettings.globalize_path(CARD_ART_DIRECTORY))
+	_load_card_art_textures(card_templates)
 
 
 func _card_slug_for(card: Dictionary) -> String:
@@ -316,15 +300,11 @@ func _card_art_resource_path(slug: String, extension: String) -> String:
 	return "%s/%s.%s" % [CARD_ART_DIRECTORY, slug, extension]
 
 
-func _card_art_placeholder_path(slug: String) -> String:
-	return "%s/%s.jpg" % [CARD_ART_DIRECTORY, slug]
-
-
 func _find_existing_card_art_path(slug: String) -> String:
 	for extension_variant in CARD_ART_EXTENSIONS:
 		var extension: String = String(extension_variant)
 		var resource_path: String = _card_art_resource_path(slug, extension)
-		if FileAccess.file_exists(resource_path):
+		if ResourceLoader.exists(resource_path, "Texture2D"):
 			return resource_path
 	return ""
 
@@ -338,30 +318,14 @@ func _decorate_card(card: Dictionary) -> Dictionary:
 	return decorated
 
 
-func _load_card_art_textures() -> void:
+func _load_card_art_textures(card_templates: Array[Dictionary]) -> void:
 	card_art_textures.clear()
-	var card_art_dir: DirAccess = DirAccess.open(CARD_ART_DIRECTORY)
-	if card_art_dir == null:
-		return
-
-	var discovered_slugs: Dictionary = {}
-	card_art_dir.list_dir_begin()
-	while true:
-		var file_name: String = card_art_dir.get_next()
-		if file_name.is_empty():
-			break
-		if card_art_dir.current_is_dir():
+	var seen_slugs: Dictionary = {}
+	for card in card_templates:
+		var slug: String = _card_slug_for(card)
+		if seen_slugs.has(slug):
 			continue
-		var extension: String = file_name.get_extension().to_lower()
-		if extension != "png" and extension != "jpg":
-			continue
-
-		var slug: String = file_name.get_basename().to_lower()
-		discovered_slugs[slug] = true
-	card_art_dir.list_dir_end()
-
-	for slug_variant in discovered_slugs.keys():
-		var slug: String = String(slug_variant)
+		seen_slugs[slug] = true
 		var resource_path: String = _find_existing_card_art_path(slug)
 		if resource_path.is_empty():
 			continue
@@ -371,42 +335,7 @@ func _load_card_art_textures() -> void:
 
 
 func _load_card_art_texture(resource_path: String) -> Texture2D:
-	var image: Image = Image.new()
-	var load_error: int = image.load(ProjectSettings.globalize_path(resource_path))
-	if load_error != OK:
-		return null
-	return ImageTexture.create_from_image(image)
-
-
-func _write_card_art_placeholder(resource_path: String, slug: String) -> void:
-	var image: Image = Image.create(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y, false, Image.FORMAT_RGB8)
-	var seed: int = abs(slug.hash())
-	var hue: float = float(seed % 1000) / 1000.0
-	var base_color: Color = Color.from_hsv(hue, 0.34, 0.78)
-	var accent_color: Color = Color.from_hsv(fmod(hue + 0.11, 1.0), 0.28, 0.56)
-
-	image.fill(base_color)
-	for y in CARD_ART_PLACEHOLDER_SIZE.y:
-		for x in CARD_ART_PLACEHOLDER_SIZE.x:
-			var stripe_band := int((x + y) / 56.0) % 2
-			if stripe_band == 0:
-				image.set_pixel(x, y, image.get_pixel(x, y).darkened(0.07))
-
-	var inset: int = 64
-	for y in range(inset, CARD_ART_PLACEHOLDER_SIZE.y - inset):
-		for x in range(inset, CARD_ART_PLACEHOLDER_SIZE.x - inset):
-			if x < inset + 10 or x >= CARD_ART_PLACEHOLDER_SIZE.x - inset - 10 or y < inset + 10 or y >= CARD_ART_PLACEHOLDER_SIZE.y - inset - 10:
-				image.set_pixel(x, y, accent_color)
-
-	var center: Vector2 = Vector2(CARD_ART_PLACEHOLDER_SIZE.x * 0.5, CARD_ART_PLACEHOLDER_SIZE.y * 0.48)
-	var radius: float = minf(CARD_ART_PLACEHOLDER_SIZE.x, CARD_ART_PLACEHOLDER_SIZE.y) * 0.22
-	for y in CARD_ART_PLACEHOLDER_SIZE.y:
-		for x in CARD_ART_PLACEHOLDER_SIZE.x:
-			var distance: float = Vector2(x, y).distance_to(center)
-			if distance <= radius:
-				image.set_pixel(x, y, accent_color.lightened(0.12))
-
-	image.save_jpg(ProjectSettings.globalize_path(resource_path), 0.9)
+	return load(resource_path) as Texture2D
 
 
 func _shuffle(cards: Array[Dictionary]) -> void:
