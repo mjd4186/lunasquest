@@ -177,6 +177,9 @@ func _apply_card_theme() -> void:
 	_style_text(description_label, 15, Color(0.956863, 0.917647, 0.784314, 1.0), Color(0, 0, 0, 1.0), 4)
 	_style_text(name_label, 17, Color(0.278431, 0.172549, 0.0470588, 1.0), Color(1.0, 0.972549, 0.882353, 0.95), 2)
 	_style_text(cost_label, 20, Color(1.0, 0.952941, 0.815686, 1.0), Color(0.160784, 0.0901961, 0.0235294, 1.0), 3)
+	description_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	description_label.add_theme_constant_override("shadow_offset_x", 0)
+	description_label.add_theme_constant_override("shadow_offset_y", 3)
 
 	shadow.color = Color(0, 0, 0, 0.34)
 
@@ -194,6 +197,7 @@ func _update_text_scale() -> void:
 	name_label.add_theme_font_size_override("font_size", maxi(12, roundi(18 * scale_factor)))
 	cost_label.add_theme_font_size_override("font_size", maxi(12, roundi(20 * scale_factor)))
 	description_label.add_theme_constant_override("outline_size", maxi(3, roundi(4 * scale_factor)))
+	description_label.add_theme_constant_override("shadow_offset_y", maxi(2, roundi(3 * scale_factor)))
 	name_label.add_theme_constant_override("outline_size", maxi(1, roundi(2 * scale_factor)))
 	cost_label.add_theme_constant_override("outline_size", maxi(1, roundi(3 * scale_factor)))
 

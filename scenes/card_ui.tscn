@@ -45,9 +45,9 @@ vertical_alignment = 1
 [node name="DescriptionLabel" type="Label" parent="."]
 unique_name_in_owner = true
 anchor_left = 0.17
-anchor_top = 0.615
+anchor_top = 0.625
 anchor_right = 0.83
-anchor_bottom = 0.88
+anchor_bottom = 0.89
 mouse_filter = 2
 autowrap_mode = 3
 horizontal_alignment = 1
