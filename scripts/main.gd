@@ -114,6 +114,9 @@ var pile_card_size := BASE_PILE_CARD_SIZE
 var hand_card_size := BASE_HAND_CARD_SIZE
 var hovered_pile := ""
 var card_art_textures: Dictionary = {}
+var _pending_draw_count := 0
+var _draw_start_index := -1
+var _flying_cards: Array[CardUI] = []
 var player_panel_hp_label: Label
 var player_panel_block_label: Label
 var player_panel_courage_label: Label
@@ -156,6 +159,9 @@ func _start_battle() -> void:
 	pinned_preview_card.clear()
 	pinned_preview_title = "Hover a card"
 	pile_hover_panel.visible = false
+	_pending_draw_count = 0
+	_draw_start_index = -1
+	_clear_flying_cards()
 	log_label.clear()
 	title_label.text = "Scared Little Dog vs. The Dark Hallway"
 	flavor_label.text = "Every creak sounds enormous. Every shadow looks hungry."
@@ -380,6 +386,7 @@ func _draw_up_to(target_hand_size: int) -> void:
 			_shuffle(draw_pile)
 			add_log("She gathers her nerve and reshuffles her options.")
 		hand.append(draw_pile.pop_back())
+		_pending_draw_count += 1
 
 
 func _attempt_play_card(index: int) -> bool:
@@ -460,6 +467,10 @@ func _deal_damage_to_player(amount: int) -> void:
 func _on_end_turn_pressed() -> void:
 	if battle_over or current_turn != "player":
 		return
+	# Animate hand cards flying to discard before clearing
+	for i in hand_card_views.size():
+		_fly_card_to_discard(hand_card_views[i], i * 0.04)
+	hand_card_views.clear()
 	if not hand.is_empty():
 		discard_pile.append_array(hand)
 		hand.clear()
@@ -468,6 +479,47 @@ func _on_end_turn_pressed() -> void:
 	current_turn = "monster"
 	update_ui()
 	_run_monster_turn()
+
+
+func _can_play_card(index: int) -> bool:
+	if battle_over or current_turn != "player":
+		return false
+	if index < 0 or index >= hand.size():
+		return false
+	return player_courage >= hand[index].get("cost", 0)
+
+
+func _fly_card_to_discard(card_view: CardUI, delay := 0.0) -> void:
+	var start_global := card_view.global_position
+	var start_rot := card_view.rotation_degrees
+	var start_scale := card_view.scale
+	card_view.get_parent().remove_child(card_view)
+	combat_canvas.add_child(card_view)
+	card_view.global_position = start_global
+	card_view.rotation_degrees = start_rot
+	card_view.scale = start_scale
+	card_view.z_index = 300
+	card_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Compute target position (discard pile) in combat_canvas local coords
+	var current_pos := card_view.position
+	card_view.global_position = discard_pile_card_view.global_position
+	var target_pos := card_view.position
+	card_view.position = current_pos
+
+	var target_scale := pile_card_size / hand_card_size
+	_flying_cards.append(card_view)
+	card_view.fly_to(target_pos, 8.0, target_scale, 0.3, delay, func():
+		_flying_cards.erase(card_view)
+		card_view.queue_free()
+	)
+
+
+func _clear_flying_cards() -> void:
+	for card in _flying_cards:
+		if is_instance_valid(card):
+			card.queue_free()
+	_flying_cards.clear()
 
 
 func _run_monster_turn() -> void:
@@ -755,7 +807,7 @@ func _attach_icon_before_label(label: Label, icon_texture: Texture2D, icon_size:
 
 	var row := HBoxContainer.new()
 	row.name = "IconRow%s" % label.name
-	row.theme_override_constants.separation = separation
+	row.add_theme_constant_override("separation", separation)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.size_flags_horizontal = label.size_flags_horizontal
 	row.size_flags_vertical = label.size_flags_vertical
@@ -779,7 +831,7 @@ func _install_player_quick_stats() -> void:
 
 	var quick_stats := HBoxContainer.new()
 	quick_stats.name = "PlayerQuickStats"
-	quick_stats.theme_override_constants.separation = 12
+	quick_stats.add_theme_constant_override("separation", 12)
 	quick_stats.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	player_vbox.add_child(quick_stats)
 	player_vbox.move_child(quick_stats, player_name_label.get_index() + 1)
@@ -792,7 +844,7 @@ func _install_player_quick_stats() -> void:
 func _create_icon_stat(parent: Control, base_name: String, icon_texture: Texture2D, icon_size: Vector2, initial_text: String, font_size: int) -> Label:
 	var row := HBoxContainer.new()
 	row.name = "%sRow" % base_name
-	row.theme_override_constants.separation = 6
+	row.add_theme_constant_override("separation", 6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(row)
 
@@ -1090,7 +1142,7 @@ func _sync_hand_views() -> void:
 			hand_card_views[i].card_index = i
 			hand_card_views[i].set_disabled(_is_card_disabled(hand[i]))
 
-	_layout_hand_cards(false)
+	_layout_hand_cards(should_rebuild)
 
 
 func _build_hand_signature() -> String:
@@ -1109,10 +1161,25 @@ func _build_hand_signature() -> String:
 
 
 func _rebuild_hand_views() -> void:
+	# Save old card transforms so remaining cards slide smoothly
+	var old_transforms: Dictionary = {}
+	for view in hand_card_views:
+		var key := "%s|%s" % [view.card_data.get("name", ""), view.card_data.get("type", "")]
+		if not old_transforms.has(key):
+			old_transforms[key] = []
+		old_transforms[key].append({
+			"position": view.position,
+			"rotation": view.rotation_degrees,
+			"scale": view.scale,
+		})
+
 	for child in hand_area.get_children():
 		child.queue_free()
 	hand_card_views.clear()
 	hovered_card_index = -1
+
+	var draw_start := hand.size() - _pending_draw_count
+	_draw_start_index = draw_start if _pending_draw_count > 0 else -1
 
 	for i in hand.size():
 		var card_view: CardUI = CARD_UI_SCENE.instantiate()
@@ -1126,6 +1193,23 @@ func _rebuild_hand_views() -> void:
 		card_view.card_index = i
 		card_view.set_disabled(_is_card_disabled(hand[i]))
 		hand_card_views.append(card_view)
+
+		if i >= draw_start and _pending_draw_count > 0:
+			# New card drawn — start at draw pile position for fly-in
+			var draw_pos: Vector2 = (draw_pile_card_view.global_position - hand_area.global_position) / layout_scale
+			card_view.position = draw_pos
+			card_view.scale = pile_card_size / hand_card_size
+			card_view.rotation_degrees = -8.0
+		else:
+			# Existing card — restore old transform for smooth slide
+			var key := "%s|%s" % [hand[i].get("name", ""), hand[i].get("type", "")]
+			if old_transforms.has(key) and not old_transforms[key].is_empty():
+				var t: Dictionary = old_transforms[key].pop_front()
+				card_view.position = t["position"]
+				card_view.rotation_degrees = t["rotation"]
+				card_view.scale = t["scale"]
+
+	_pending_draw_count = 0
 
 
 func _is_card_disabled(card: Dictionary) -> bool:
@@ -1160,7 +1244,14 @@ func _layout_hand_cards(animated := true) -> void:
 		var arc_offset: float = pow(absf(normalized), 1.35) * HAND_FAN_ARC
 		var target_position: Vector2 = Vector2(start_x + (step * i), base_y + arc_offset)
 		var rotation: float = 0.0 if count == 1 else lerpf(-HAND_FAN_ROTATION, HAND_FAN_ROTATION, t)
-		card_view.set_rest_transform(target_position, rotation, 20 + i, animated)
+		var delay := 0.0
+		var duration := 0.18
+		if _draw_start_index >= 0 and i >= _draw_start_index and animated:
+			delay = float(i - _draw_start_index) * 0.07
+			duration = 0.3
+		card_view.set_rest_transform(target_position, rotation, 20 + i, animated, delay, duration)
+
+	_draw_start_index = -1
 
 
 func _set_pinned_preview(card: Dictionary, title: String) -> void:
@@ -1233,9 +1324,10 @@ func _on_hand_card_drag_ended(card_view: CardUI, mouse_position: Vector2) -> voi
 	hovered_card_index = card_view.card_index if card_view.card_index < hand.size() else -1
 	_refresh_play_area_hint(false, false)
 
-	if can_play:
-		if _attempt_play_card(card_view.card_index):
-			return
+	if can_play and _can_play_card(card_view.card_index):
+		_fly_card_to_discard(card_view)
+		_attempt_play_card(card_view.card_index)
+		return
 
 	_layout_hand_cards(true)
 	_refresh_preview()

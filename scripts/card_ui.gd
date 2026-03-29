@@ -107,12 +107,12 @@ func set_hover_enabled(value: bool) -> void:
 	hover_enabled = value
 
 
-func set_rest_transform(new_position: Vector2, new_rotation: float, new_z_index: int, animated := true) -> void:
+func set_rest_transform(new_position: Vector2, new_rotation: float, new_z_index: int, animated := true, delay := 0.0, duration := 0.18) -> void:
 	_rest_position = new_position
 	_rest_rotation = new_rotation
 	_rest_z_index = new_z_index
 	if is_node_ready():
-		_apply_rest_transform(animated)
+		_apply_rest_transform(animated, delay, duration)
 
 
 func is_dragging() -> bool:
@@ -235,7 +235,21 @@ func _apply_enabled_state() -> void:
 		cost_label.add_theme_color_override("font_color", Color(1.0, 0.952941, 0.815686, 1.0))
 
 
-func _apply_rest_transform(animated: bool) -> void:
+func fly_to(target_pos: Vector2, target_rot: float, target_scl: Vector2, duration: float, delay := 0.0, callback: Callable = Callable()) -> void:
+	draggable = false
+	hover_enabled = false
+	_kill_tween()
+	_move_tween = create_tween().set_parallel(true)
+	_move_tween.set_ease(Tween.EASE_IN_OUT)
+	_move_tween.set_trans(Tween.TRANS_QUAD)
+	_move_tween.tween_property(self, "position", target_pos, duration).set_delay(delay)
+	_move_tween.tween_property(self, "rotation_degrees", target_rot, duration).set_delay(delay)
+	_move_tween.tween_property(self, "scale", target_scl, duration).set_delay(delay)
+	if callback.is_valid():
+		_move_tween.finished.connect(callback)
+
+
+func _apply_rest_transform(animated: bool, delay := 0.0, duration := 0.18) -> void:
 	if dragging:
 		return
 
@@ -261,9 +275,9 @@ func _apply_rest_transform(animated: bool) -> void:
 	_move_tween = create_tween().set_parallel(true)
 	_move_tween.set_ease(Tween.EASE_OUT)
 	_move_tween.set_trans(Tween.TRANS_BACK)
-	_move_tween.tween_property(self, "position", target_position, 0.18)
-	_move_tween.tween_property(self, "rotation_degrees", target_rotation, 0.18)
-	_move_tween.tween_property(self, "scale", target_scale, 0.18)
+	_move_tween.tween_property(self, "position", target_position, duration).set_delay(delay)
+	_move_tween.tween_property(self, "rotation_degrees", target_rotation, duration).set_delay(delay)
+	_move_tween.tween_property(self, "scale", target_scale, duration).set_delay(delay)
 
 
 func _kill_tween() -> void:
