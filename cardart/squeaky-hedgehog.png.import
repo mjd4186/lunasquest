@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cleo0y2wg121o"
-path="res://.godot/imported/peek-around-corner.jpg-06015ffa4394d1834d134a5038d52ea3.ctex"
+uid="uid://cu5bg7yn1lync"
+path="res://.godot/imported/squeaky-hedgehog.png-84e3dfa4a0bd865992ec802b388e9d65.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/peek-around-corner.jpg"
-dest_files=["res://.godot/imported/peek-around-corner.jpg-06015ffa4394d1834d134a5038d52ea3.ctex"]
+source_file="res://cardart/squeaky-hedgehog.png"
+dest_files=["res://.godot/imported/squeaky-hedgehog.png-84e3dfa4a0bd865992ec802b388e9d65.ctex"]
 
 [params]
 
