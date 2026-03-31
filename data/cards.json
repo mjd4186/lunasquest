@@ -55,11 +55,12 @@
       "name": "Favorite Sweater",
       "type": "buff",
       "cost": 2,
-      "text": "Exile. At the start of your turn, gain 2 block.",
+      "text": "Exile. At the start of your turn, gain 3 block and draw a card.",
       "flavor_text": "Warmth is a kind of armor.",
       "art_slug": "favorite-sweater",
       "properties": {
-        "block_every_turn": 2,
+        "block_every_turn": 3,
+        "draw_every_turn": 1,
         "exile": true
       }
     },

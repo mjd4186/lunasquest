@@ -393,8 +393,8 @@ func start_player_turn() -> void:
 	player_bonus_courage_next_turn = 0
 	player_strength_this_turn = 0
 	player_block = 0
-	_apply_turn_start_buffs("player")
-	_draw_up_to(HAND_SIZE)
+	var extra_draws := _apply_turn_start_buffs("player")
+	_draw_up_to(HAND_SIZE + extra_draws)
 	add_log("[b]Turn %d:[/b] The little dog braces herself." % turn_number)
 	update_ui()
 
@@ -503,7 +503,7 @@ func _build_fight_buff_from_card(card: Dictionary) -> Dictionary:
 		"name": String(card.get("name", "")),
 		"text": _buff_summary_text(String(card.get("text", ""))),
 	}
-	for property_name in ["block_every_turn", "energy_every_turn", "strength_every_turn", "shred_block_every_turn"]:
+	for property_name in ["block_every_turn", "draw_every_turn", "energy_every_turn", "strength_every_turn", "shred_block_every_turn"]:
 		if properties.has(property_name):
 			buff[property_name] = properties[property_name]
 	return buff
@@ -657,8 +657,9 @@ func roll_monster_intent() -> void:
 	update_ui()
 
 
-func _apply_turn_start_buffs(owner: String) -> void:
+func _apply_turn_start_buffs(owner: String) -> int:
 	var buffs := player_buffs if owner == "player" else monster_buffs
+	var extra_draws := 0
 	for buff in buffs:
 		if buff.has("block_every_turn"):
 			var block_amount: int = buff["block_every_turn"]
@@ -668,6 +669,11 @@ func _apply_turn_start_buffs(owner: String) -> void:
 			else:
 				monster_block += block_amount
 				add_log("%s grants the hallway %d block." % [buff["name"], block_amount])
+
+		if buff.has("draw_every_turn") and owner == "player":
+			var draw_amount: int = int(buff["draw_every_turn"])
+			extra_draws += draw_amount
+			add_log("%s lets her draw %d card(s)." % [buff["name"], draw_amount])
 
 		if buff.has("energy_every_turn") and owner == "player":
 			var courage_amount: int = buff["energy_every_turn"]
@@ -686,6 +692,8 @@ func _apply_turn_start_buffs(owner: String) -> void:
 				monster_block -= removed_from_monster
 				if removed_from_monster > 0:
 					add_log("%s tears away %d of the hallway's block." % [buff["name"], removed_from_monster])
+
+	return extra_draws
 
 
 func _gain_fight_buff(buff_data: Dictionary) -> void:
