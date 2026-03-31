@@ -64,6 +64,20 @@
       }
     },
     {
+      "id": "bite",
+      "name": "Bite",
+      "type": "attack",
+      "cost": 0,
+      "cost_label": "X",
+      "text": "Spend all remaining courage. Deal 5 damage per courage spent.",
+      "flavor_text": "The harder she commits, the sharper it lands.",
+      "art_slug": "placeholder",
+      "properties": {
+        "damage_per_x": 5,
+        "x_cost": true
+      }
+    },
+    {
       "id": "favorite_sweater",
       "name": "Favorite Sweater",
       "type": "buff",

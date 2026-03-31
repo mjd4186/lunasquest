@@ -419,14 +419,14 @@ func _attempt_play_card(index: int) -> bool:
 		return false
 
 	var card := hand[index]
-	var card_cost: int = card.get("cost", 0)
+	var card_cost := _current_card_cost(card)
 	if player_courage < card_cost:
 		add_log("She wants to play [b]%s[/b], but doesn't have enough courage." % card["name"])
 		update_ui()
 		return false
 
 	player_courage -= card_cost
-	var should_discard := _resolve_card(card)
+	var should_discard := _resolve_card(card, card_cost)
 	if should_discard:
 		discard_pile.append(card)
 	hand.remove_at(index)
@@ -440,13 +440,21 @@ func _attempt_play_card(index: int) -> bool:
 	return true
 
 
-func _resolve_card(card: Dictionary) -> bool:
+func _resolve_card(card: Dictionary, spent_courage := -1) -> bool:
 	add_log("She plays [b]%s[/b]." % card["name"])
 	var properties := _card_properties(card)
+	if spent_courage < 0:
+		spent_courage = _base_card_cost(card)
 
 	if card.get("type", "") == "buff":
 		_gain_fight_buff(_build_fight_buff_from_card(card))
 		return _card_should_discard(card)
+
+	if properties.get("x_cost", false) and properties.has("damage_per_x"):
+		var x_damage := int(properties["damage_per_x"]) * spent_courage
+		add_log("%s spends %d courage for %d damage." % [card["name"], spent_courage, x_damage])
+		var scaled_amount := _modified_attack_damage(x_damage, "player")
+		_deal_damage_to_monster(scaled_amount)
 
 	if properties.has("damage"):
 		var amount := _modified_attack_damage(int(properties["damage"]), "player")
@@ -495,6 +503,16 @@ func _card_properties(card: Dictionary) -> Dictionary:
 	if typeof(raw_properties) == TYPE_DICTIONARY:
 		return raw_properties
 	return {}
+
+
+func _base_card_cost(card: Dictionary) -> int:
+	return int(card.get("cost", 0))
+
+
+func _current_card_cost(card: Dictionary) -> int:
+	if _card_properties(card).get("x_cost", false):
+		return player_courage
+	return _base_card_cost(card)
 
 
 func _card_should_discard(card: Dictionary) -> bool:
@@ -563,7 +581,7 @@ func _can_play_card(index: int) -> bool:
 		return false
 	if index < 0 or index >= hand.size():
 		return false
-	return player_courage >= hand[index].get("cost", 0)
+	return player_courage >= _current_card_cost(hand[index])
 
 
 func _fly_card_to_discard(card_view: CardUI, delay := 0.0) -> void:
@@ -1300,7 +1318,7 @@ func _rebuild_hand_views() -> void:
 
 
 func _is_card_disabled(card: Dictionary) -> bool:
-	return battle_over or current_turn != "player" or card.get("cost", 0) > player_courage
+	return battle_over or current_turn != "player" or _current_card_cost(card) > player_courage
 
 
 func _layout_hand_cards(animated := true) -> void:

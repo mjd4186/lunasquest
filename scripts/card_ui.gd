@@ -219,7 +219,7 @@ func _refresh() -> void:
 		_apply_enabled_state()
 		return
 
-	cost_label.text = str(card_data.get("cost", 0))
+	cost_label.text = str(card_data.get("cost_label", card_data.get("cost", 0)))
 	name_label.text = card_data.get("name", "")
 	description_label.text = card_data.get("text", "")
 	_apply_enabled_state()
