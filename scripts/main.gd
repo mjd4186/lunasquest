@@ -27,6 +27,9 @@ const HAND_CARD_OVERLAP := 0.72
 const HAND_FAN_ROTATION := 11.0
 const HAND_FAN_ARC := 48.0
 const HAND_BASE_LIFT := 12.0
+const CARD_DAMAGE_COLOR := "ff6b6b"
+const CARD_BLOCK_COLOR := "79b8ff"
+const CARD_HEAL_COLOR := "7fe08a"
 
 @onready var combat_canvas: Control = %CombatCanvas
 @onready var title_label: Label = %TitleLabel
@@ -462,9 +465,7 @@ func _resolve_card(card: Dictionary, spent_courage := -1) -> bool:
 		_deal_damage_to_monster(amount)
 
 	if properties.has("block"):
-		var block_amount: int = int(properties["block"])
-		if player_statuses.frail > 0:
-			block_amount = maxi(1, int(floor(block_amount * 0.75)))
+		var block_amount := _modified_block_amount(int(properties["block"]))
 		player_block += block_amount
 		add_log("She gains %d block." % block_amount)
 
@@ -475,7 +476,7 @@ func _resolve_card(card: Dictionary, spent_courage := -1) -> bool:
 		add_log("She finds a little courage and draws %d card(s)." % draw_amount)
 
 	if properties.has("heal"):
-		var heal_amount: int = int(properties["heal"])
+		var heal_amount := _modified_heal_amount(int(properties["heal"]))
 		var previous_hp := player_hp
 		player_hp = mini(STARTING_HP, player_hp + heal_amount)
 		var restored_hp := player_hp - previous_hp
@@ -514,6 +515,16 @@ func _current_card_cost(card: Dictionary) -> int:
 	if _card_properties(card).get("x_cost", false):
 		return player_courage
 	return _base_card_cost(card)
+
+
+func _modified_block_amount(base_block: int) -> int:
+	if player_statuses.frail > 0:
+		return maxi(1, int(floor(base_block * 0.75)))
+	return base_block
+
+
+func _modified_heal_amount(base_heal: int) -> int:
+	return base_heal
 
 
 func _card_should_discard(card: Dictionary) -> bool:
@@ -814,6 +825,88 @@ func update_ui() -> void:
 	_sync_hand_views()
 	_refresh_preview()
 	_refresh_play_area_hint(false, false)
+
+
+func _build_card_display_data(card: Dictionary) -> Dictionary:
+	var display_card := card.duplicate(true)
+	display_card["cost_label"] = "X" if _card_properties(card).get("x_cost", false) else str(_current_card_cost(card))
+	display_card["rich_text"] = _build_card_rules_text(card)
+	return display_card
+
+
+func _build_card_rules_text(card: Dictionary) -> String:
+	var properties := _card_properties(card)
+	var rules_text := String(card.get("text", ""))
+
+	if properties.has("damage"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["damage"]),
+			_modified_attack_damage(int(properties["damage"]), "player"),
+			"damage",
+			CARD_DAMAGE_COLOR
+		)
+
+	if properties.has("damage_per_x"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["damage_per_x"]),
+			_modified_attack_damage(int(properties["damage_per_x"]), "player"),
+			"damage",
+			CARD_DAMAGE_COLOR
+		)
+
+	if properties.has("block"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["block"]),
+			_modified_block_amount(int(properties["block"])),
+			"block",
+			CARD_BLOCK_COLOR
+		)
+
+	if properties.has("block_every_turn"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["block_every_turn"]),
+			_modified_block_amount(int(properties["block_every_turn"])),
+			"block",
+			CARD_BLOCK_COLOR
+		)
+
+	if properties.has("heal"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["heal"]),
+			_modified_heal_amount(int(properties["heal"])),
+			"heal",
+			CARD_HEAL_COLOR
+		)
+
+	if properties.has("strength_every_turn"):
+		rules_text = _replace_card_stat_text(
+			rules_text,
+			int(properties["strength_every_turn"]),
+			int(properties["strength_every_turn"]),
+			"damage",
+			CARD_DAMAGE_COLOR
+		)
+
+	return rules_text
+
+
+func _replace_card_stat_text(text: String, base_value: int, display_value: int, keyword: String, color_hex: String) -> String:
+	var base_phrase := " %d %s" % [base_value, keyword]
+	var replacement := " [color=#%s]%d[/color] %s" % [color_hex, display_value, keyword]
+	if text.contains(base_phrase):
+		return text.replace(base_phrase, replacement)
+
+	var capitalized_phrase := "%s %d" % [keyword.capitalize(), base_value]
+	var capitalized_replacement := "%s [color=#%s]%d[/color]" % [keyword.capitalize(), color_hex, display_value]
+	if text.contains(capitalized_phrase):
+		return text.replace(capitalized_phrase, capitalized_replacement)
+
+	return text
 
 
 func _format_statuses(statuses: Dictionary, empty_text: String) -> String:
@@ -1195,7 +1288,7 @@ func _sync_pile_views() -> void:
 		discard_pile_card_view.modulate = Color(0.72, 0.72, 0.72, 0.55)
 	else:
 		discard_pile_card_view.set_face_down(false)
-		discard_pile_card_view.set_card_data(discard_pile.back())
+		discard_pile_card_view.set_card_data(_build_card_display_data(discard_pile.back()))
 		discard_pile_card_view.modulate = Color.WHITE
 	_update_hovered_pile_tooltip()
 
@@ -1256,6 +1349,7 @@ func _sync_hand_views() -> void:
 	else:
 		for i in hand_card_views.size():
 			hand_card_views[i].card_index = i
+			hand_card_views[i].set_card_data(_build_card_display_data(hand[i]))
 			hand_card_views[i].set_disabled(_is_card_disabled(hand[i]))
 
 	_layout_hand_cards(should_rebuild)
@@ -1303,7 +1397,7 @@ func _rebuild_hand_views() -> void:
 		card_view.hover_changed.connect(_on_hand_card_hover_changed)
 		hand_area.add_child(card_view)
 		card_view.set_display_size(hand_card_size)
-		card_view.set_card_data(hand[i])
+		card_view.set_card_data(_build_card_display_data(hand[i]))
 		card_view.card_index = i
 		card_view.set_disabled(_is_card_disabled(hand[i]))
 		hand_card_views.append(card_view)
@@ -1378,14 +1472,14 @@ func _refresh_preview() -> void:
 		preview_title_label.text = "Card Preview"
 		preview_card_view.visible = true
 		preview_card_view.set_face_down(false)
-		preview_card_view.set_card_data(hand[hovered_card_index])
+		preview_card_view.set_card_data(_build_card_display_data(hand[hovered_card_index]))
 		return
 
 	if not pinned_preview_card.is_empty():
 		preview_title_label.text = pinned_preview_title
 		preview_card_view.visible = true
 		preview_card_view.set_face_down(false)
-		preview_card_view.set_card_data(pinned_preview_card)
+		preview_card_view.set_card_data(_build_card_display_data(pinned_preview_card))
 		return
 
 	preview_title_label.text = "Hover a card"

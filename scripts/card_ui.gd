@@ -16,7 +16,7 @@ const DRAG_THRESHOLD := 10.0
 @onready var art_texture_rect: TextureRect = %ArtTexture
 @onready var cost_badge: PanelContainer = %CostBadge
 @onready var cost_label: Label = %CostLabel
-@onready var description_label: Label = %DescriptionLabel
+@onready var description_label: RichTextLabel = %DescriptionLabel
 @onready var name_label: Label = %NameLabel
 
 var card_data: Dictionary = {}
@@ -186,16 +186,30 @@ func _apply_card_theme() -> void:
 	shadow.color = Color(0, 0, 0, 0.34)
 
 
-func _style_text(label: Label, font_size: int, font_color: Color, outline_color: Color, outline_size: int) -> void:
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", font_color)
-	label.add_theme_color_override("font_outline_color", outline_color)
-	label.add_theme_constant_override("outline_size", outline_size)
+func _style_text(label: Control, font_size: int, font_color: Color, outline_color: Color, outline_size: int) -> void:
+	if label is RichTextLabel:
+		var rich_label := label as RichTextLabel
+		rich_label.add_theme_font_size_override("normal_font_size", font_size)
+		rich_label.add_theme_font_size_override("bold_font_size", font_size)
+		rich_label.add_theme_font_size_override("italics_font_size", font_size)
+		rich_label.add_theme_color_override("default_color", font_color)
+		rich_label.add_theme_color_override("font_outline_color", outline_color)
+		rich_label.add_theme_constant_override("outline_size", outline_size)
+		return
+
+	var plain_label := label as Label
+	plain_label.add_theme_font_size_override("font_size", font_size)
+	plain_label.add_theme_color_override("font_color", font_color)
+	plain_label.add_theme_color_override("font_outline_color", outline_color)
+	plain_label.add_theme_constant_override("outline_size", outline_size)
 
 
 func _update_text_scale() -> void:
 	var scale_factor: float = clampf(size.y / DEFAULT_CARD_SIZE.y, 0.5, 1.2)
-	description_label.add_theme_font_size_override("font_size", maxi(11, roundi(16 * scale_factor)))
+	var description_font_size := maxi(11, roundi(16 * scale_factor))
+	description_label.add_theme_font_size_override("normal_font_size", description_font_size)
+	description_label.add_theme_font_size_override("bold_font_size", description_font_size)
+	description_label.add_theme_font_size_override("italics_font_size", description_font_size)
 	name_label.add_theme_font_size_override("font_size", maxi(12, roundi(18 * scale_factor)))
 	cost_label.add_theme_font_size_override("font_size", maxi(12, roundi(20 * scale_factor)))
 	description_label.add_theme_constant_override("outline_size", maxi(3, roundi(4 * scale_factor)))
@@ -221,7 +235,7 @@ func _refresh() -> void:
 
 	cost_label.text = str(card_data.get("cost_label", card_data.get("cost", 0)))
 	name_label.text = card_data.get("name", "")
-	description_label.text = card_data.get("text", "")
+	description_label.text = card_data.get("rich_text", card_data.get("text", ""))
 	_apply_enabled_state()
 
 
