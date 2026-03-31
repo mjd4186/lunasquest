@@ -64,6 +64,19 @@
       }
     },
     {
+      "id": "winter_coat",
+      "name": "Winter Coat",
+      "type": "buff",
+      "cost": 1,
+      "text": "Exile. At the start of your turn, gain 2 block.",
+      "flavor_text": "Someone's overdue for a haircut.",
+      "art_slug": "winter-coat",
+      "properties": {
+        "block_every_turn": 2,
+        "exile": true
+      }
+    },
+    {
       "id": "calming_drops",
       "name": "Calming Drops",
       "type": "buff",
