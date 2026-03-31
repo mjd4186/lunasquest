@@ -1,0 +1,93 @@
+{
+  "cards": [
+    {
+      "id": "yip",
+      "name": "Yip!",
+      "type": "attack",
+      "cost": 1,
+      "text": "Deal 6 damage.",
+      "flavor_text": "A tiny bark with giant courage.",
+      "art_slug": "yip",
+      "properties": {
+        "damage": 6
+      }
+    },
+    {
+      "id": "cower",
+      "name": "Cower",
+      "type": "skill",
+      "cost": 1,
+      "text": "Gain 5 block.",
+      "flavor_text": "Sometimes bravery looks a lot like surviving.",
+      "art_slug": "cower",
+      "properties": {
+        "block": 5
+      }
+    },
+    {
+      "id": "peek_around_corner",
+      "name": "Peek Around Corner",
+      "type": "skill",
+      "cost": 2,
+      "text": "Deal 7 damage and gain 7 block.",
+      "flavor_text": "A cautious glance can still change the moment.",
+      "art_slug": "peek-around-corner",
+      "properties": {
+        "damage": 7,
+        "block": 7
+      }
+    },
+    {
+      "id": "find_courage",
+      "name": "Find Courage",
+      "type": "skill",
+      "cost": 0,
+      "text": "Gain 2 block. Draw 2 cards.",
+      "flavor_text": "A deep breath can be a lantern.",
+      "art_slug": "find-courage",
+      "properties": {
+        "block": 2,
+        "draw": 2
+      }
+    },
+    {
+      "id": "favorite_sweater",
+      "name": "Favorite Sweater",
+      "type": "buff",
+      "cost": 2,
+      "text": "Exile. At the start of your turn, gain 2 block.",
+      "flavor_text": "Warmth is a kind of armor.",
+      "art_slug": "favorite-sweater",
+      "properties": {
+        "block_every_turn": 2,
+        "exile": true
+      }
+    },
+    {
+      "id": "calming_drops",
+      "name": "Calming Drops",
+      "type": "buff",
+      "cost": 1,
+      "text": "Exile. At the start of your turn, gain 1 courage.",
+      "flavor_text": "A little steadiness goes a long way.",
+      "art_slug": "calming-drops",
+      "properties": {
+        "energy_every_turn": 1,
+        "exile": true
+      }
+    },
+    {
+      "id": "squeaky_hedgehog",
+      "name": "Squeaky Hedgehog",
+      "type": "buff",
+      "cost": 2,
+      "text": "Exile. Your attacks deal 1 extra damage.",
+      "flavor_text": "A prickly little miracle.",
+      "art_slug": "squeaky-hedgehog",
+      "properties": {
+        "strength_every_turn": 1,
+        "exile": true
+      }
+    }
+  ]
+}

@@ -17,6 +17,8 @@ const COMPOSITION_SIZE := Vector2(1920, 1080)
 const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
+const CARDS_DATA_PATH := "res://data/cards.json"
+const STARTING_DECK_DATA_PATH := "res://data/starting_deck.json"
 const CARD_ART_DIRECTORY := "res://cardart"
 const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
@@ -100,6 +102,9 @@ var hand_card_views: Array[CardUI] = []
 var preview_card_view: CardUI
 var draw_pile_card_view: CardUI
 var discard_pile_card_view: CardUI
+var card_definitions: Array[Dictionary] = []
+var card_definitions_by_id: Dictionary = {}
+var card_definitions_by_name: Dictionary = {}
 
 var hand_signature := ""
 var hovered_card_index := -1
@@ -117,6 +122,8 @@ var card_art_textures: Dictionary = {}
 var _pending_draw_count := 0
 var _draw_start_index := -1
 var _flying_cards: Array[CardUI] = []
+var player_bonus_courage_next_turn := 0
+var player_strength_this_turn := 0
 var player_panel_hp_label: Label
 var player_panel_block_label: Label
 var player_panel_courage_label: Label
@@ -136,6 +143,7 @@ func _ready() -> void:
 	_install_lucide_icons()
 	_apply_fixed_layout_metrics()
 	_update_canvas_transform()
+	_load_card_definitions()
 	_start_battle()
 	call_deferred("_update_canvas_transform")
 
@@ -150,6 +158,8 @@ func _start_battle() -> void:
 	monster_statuses = {"vulnerable": 0}
 	player_buffs = _build_starting_player_buffs()
 	monster_buffs = _build_starting_monster_buffs()
+	player_bonus_courage_next_turn = 0
+	player_strength_this_turn = 0
 	turn_number = 1
 	current_turn = "player"
 	battle_over = false
@@ -180,87 +190,103 @@ func _start_battle() -> void:
 
 func _build_starting_deck() -> Array[Dictionary]:
 	var deck: Array[Dictionary] = []
-	var yip: Dictionary = {
-		"name": "Yip!",
-		"type": "attack",
-		"cost": 1,
-		"damage": 6,
-		"text": "Deal 6 damage.",
-	}
-	var cower: Dictionary = {
-		"name": "Cower",
-		"type": "block",
-		"cost": 1,
-		"block": 5,
-		"text": "Gain 5 block.",
-	}
-	var peek_around_corner: Dictionary = {
-		"name": "Peek Around Corner",
-		"type": "skill",
-		"cost": 2,
-		"damage": 7,
-		"block": 7,
-		"text": "Deal 7 damage and gain 7 block.",
-	}
-	var find_courage: Dictionary = {
-		"name": "Find Courage",
-		"type": "skill",
-		"cost": 0,
-		"draw": 2,
-		"block": 2,
-		"text": "Gain 2 block. Draw 2 cards.",
-	}
-	var favorite_sweater: Dictionary = {
-		"name": "Favorite Sweater",
-		"type": "buff",
-		"cost": 2,
-		"text": "Fight buff: At the start of your turn, gain 2 block.",
-		"buff_data": {
-			"name": "Favorite Sweater",
-			"text": "At the start of your turn, gain 2 block.",
-			"block_on_turn_start": 2,
-		},
-	}
-	var calming_drops: Dictionary = {
-		"name": "Calming Drops",
-		"type": "buff",
-		"cost": 1,
-		"text": "Fight buff: At the start of your turn, gain 1 courage.",
-		"buff_data": {
-			"name": "Calming Drops",
-			"text": "At the start of your turn, gain 1 courage.",
-			"courage_on_turn_start": 1,
-		},
-	}
-	var squeaky_hedgehog: Dictionary = {
-		"name": "Squeaky Hedgehog",
-		"type": "buff",
-		"cost": 2,
-		"text": "Fight buff: Your attacks deal 1 extra damage.",
-		"buff_data": {
-			"name": "Squeaky Hedgehog",
-			"text": "Your attacks deal 1 extra damage.",
-			"attack_bonus": 1,
-		},
-	}
-	var card_templates: Array[Dictionary] = [
-		yip,
-		cower,
-		peek_around_corner,
-		find_courage,
-		favorite_sweater,
-		calming_drops,
-		squeaky_hedgehog,
-	]
-	_ensure_card_art_library(card_templates)
-	deck.append_array(_make_copies(yip, 5))
-	deck.append_array(_make_copies(cower, 4))
-	deck.append_array(_make_copies(peek_around_corner, 2))
-	deck.append_array(_make_copies(find_courage, 1))
-	deck.append_array(_make_copies(favorite_sweater, 1))
-	deck.append_array(_make_copies(calming_drops, 1))
-	deck.append_array(_make_copies(squeaky_hedgehog, 1))
+	var deck_data := _load_json_dictionary(STARTING_DECK_DATA_PATH)
+	for card_reference_variant in deck_data.get("cards", []):
+		var card_reference := String(card_reference_variant).strip_edges()
+		if card_reference.is_empty():
+			continue
+		var card_definition := _find_card_definition(card_reference)
+		if card_definition.is_empty():
+			push_error("Unknown card in starting deck: %s" % card_reference)
+			continue
+		deck.append(_decorate_card(card_definition))
 	return deck
+
+
+func _load_card_definitions() -> void:
+	card_definitions.clear()
+	card_definitions_by_id.clear()
+	card_definitions_by_name.clear()
+
+	var cards_data := _load_json_dictionary(CARDS_DATA_PATH)
+	for card_variant in cards_data.get("cards", []):
+		if typeof(card_variant) != TYPE_DICTIONARY:
+			continue
+		var normalized_card := _normalize_card_definition(card_variant)
+		if normalized_card.is_empty():
+			continue
+		card_definitions.append(normalized_card)
+		card_definitions_by_id[normalized_card["id"]] = normalized_card
+		card_definitions_by_name[String(normalized_card["name"]).to_lower()] = normalized_card
+
+	_ensure_card_art_library(card_definitions)
+
+
+func _load_json_dictionary(resource_path: String) -> Dictionary:
+	if not FileAccess.file_exists(resource_path):
+		push_error("Missing JSON file: %s" % resource_path)
+		return {}
+
+	var file := FileAccess.open(resource_path, FileAccess.READ)
+	if file == null:
+		push_error("Unable to open JSON file: %s" % resource_path)
+		return {}
+
+	var json := JSON.new()
+	var parse_result := json.parse(file.get_as_text())
+	if parse_result != OK:
+		push_error("Failed to parse %s at line %d: %s" % [resource_path, json.get_error_line(), json.get_error_message()])
+		return {}
+
+	if typeof(json.data) != TYPE_DICTIONARY:
+		push_error("Expected a JSON object in %s." % resource_path)
+		return {}
+
+	return json.data
+
+
+func _normalize_card_definition(raw_card: Dictionary) -> Dictionary:
+	var card := raw_card.duplicate(true)
+	var properties: Dictionary = {}
+	var raw_properties: Variant = card.get("properties", {})
+	if typeof(raw_properties) == TYPE_DICTIONARY:
+		properties = raw_properties
+
+	var legacy_property_mappings := {
+		"block_on_turn_start": "block_every_turn",
+		"courage_on_turn_start": "energy_every_turn",
+		"attack_bonus": "strength_every_turn",
+	}
+	for legacy_key in legacy_property_mappings.keys():
+		if properties.has(legacy_key) and not properties.has(legacy_property_mappings[legacy_key]):
+			properties[legacy_property_mappings[legacy_key]] = properties[legacy_key]
+		properties.erase(legacy_key)
+
+	for immediate_key in ["damage", "block", "draw"]:
+		if card.has(immediate_key) and not properties.has(immediate_key):
+			properties[immediate_key] = card[immediate_key]
+		card.erase(immediate_key)
+
+	card["id"] = String(card.get("id", _card_slug_for(card))).strip_edges().to_lower()
+	card["name"] = String(card.get("name", card["id"])).strip_edges()
+	card["type"] = String(card.get("type", "skill")).strip_edges().to_lower()
+	card["cost"] = int(card.get("cost", 0))
+	card["text"] = String(card.get("text", "")).strip_edges()
+	card["flavor_text"] = String(card.get("flavor_text", "")).strip_edges()
+	card["properties"] = properties
+	return card
+
+
+func _find_card_definition(card_reference: String) -> Dictionary:
+	var normalized_id := card_reference.to_lower()
+	if card_definitions_by_id.has(normalized_id):
+		return card_definitions_by_id[normalized_id]
+
+	var normalized_name := card_reference.to_lower()
+	if card_definitions_by_name.has(normalized_name):
+		return card_definitions_by_name[normalized_name]
+
+	return {}
 
 
 func _build_starting_player_buffs() -> Array[Dictionary]:
@@ -270,23 +296,18 @@ func _build_starting_player_buffs() -> Array[Dictionary]:
 func _build_starting_monster_buffs() -> Array[Dictionary]:
 	return [
 		{
+			"id": "shadow_teeth",
 			"name": "Shadow Teeth",
 			"text": "Its attacks deal 2 extra damage.",
-			"attack_bonus": 2,
+			"strength_every_turn": 2,
 		},
 		{
+			"id": "cold_draft",
 			"name": "Cold Draft",
 			"text": "At the start of its turn, strip 3 block from the little dog.",
-			"shred_block_on_turn_start": 3,
+			"shred_block_every_turn": 3,
 		},
 	]
-
-
-func _make_copies(card: Dictionary, amount: int) -> Array[Dictionary]:
-	var copies: Array[Dictionary] = []
-	for i in amount:
-		copies.append(_decorate_card(card))
-	return copies
 
 
 func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
@@ -368,7 +389,9 @@ func _shuffle(cards: Array[Dictionary]) -> void:
 
 func start_player_turn() -> void:
 	current_turn = "player"
-	player_courage = COURAGE_PER_TURN
+	player_courage = COURAGE_PER_TURN + player_bonus_courage_next_turn
+	player_bonus_courage_next_turn = 0
+	player_strength_this_turn = 0
 	player_block = 0
 	_apply_turn_start_buffs("player")
 	_draw_up_to(HAND_SIZE)
@@ -419,29 +442,75 @@ func _attempt_play_card(index: int) -> bool:
 
 func _resolve_card(card: Dictionary) -> bool:
 	add_log("She plays [b]%s[/b]." % card["name"])
+	var properties := _card_properties(card)
 
 	if card.get("type", "") == "buff":
-		_gain_fight_buff(card["buff_data"])
-		return false
+		_gain_fight_buff(_build_fight_buff_from_card(card))
+		return _card_should_discard(card)
 
-	if card.has("damage"):
-		var amount := _modified_attack_damage(card["damage"], "player")
+	if properties.has("damage"):
+		var amount := _modified_attack_damage(int(properties["damage"]), "player")
 		_deal_damage_to_monster(amount)
 
-	if card.has("block"):
-		var block_amount: int = card["block"]
+	if properties.has("block"):
+		var block_amount: int = int(properties["block"])
 		if player_statuses.frail > 0:
 			block_amount = maxi(1, int(floor(block_amount * 0.75)))
 		player_block += block_amount
 		add_log("She gains %d block." % block_amount)
 
-	if card.has("draw"):
-		var draw_amount: int = card["draw"]
+	if properties.has("draw"):
+		var draw_amount: int = int(properties["draw"])
 		for i in draw_amount:
 			_draw_up_to(hand.size() + 1)
 		add_log("She finds a little courage and draws %d card(s)." % draw_amount)
 
-	return true
+	if properties.has("energy_this_turn"):
+		var courage_amount: int = int(properties["energy_this_turn"])
+		player_courage += courage_amount
+		add_log("She gains %d courage this turn." % courage_amount)
+
+	if properties.has("energy_next_turn"):
+		var next_turn_courage: int = int(properties["energy_next_turn"])
+		player_bonus_courage_next_turn += next_turn_courage
+		add_log("She stores %d extra courage for next turn." % next_turn_courage)
+
+	if properties.has("strength_this_turn"):
+		var strength_amount: int = int(properties["strength_this_turn"])
+		player_strength_this_turn += strength_amount
+		add_log("She gains %d strength this turn." % strength_amount)
+
+	return _card_should_discard(card)
+
+
+func _card_properties(card: Dictionary) -> Dictionary:
+	var raw_properties: Variant = card.get("properties", {})
+	if typeof(raw_properties) == TYPE_DICTIONARY:
+		return raw_properties
+	return {}
+
+
+func _card_should_discard(card: Dictionary) -> bool:
+	if card.get("type", "") == "buff":
+		return false
+	return not bool(_card_properties(card).get("exile", false))
+
+
+func _build_fight_buff_from_card(card: Dictionary) -> Dictionary:
+	var properties := _card_properties(card)
+	var buff := {
+		"id": String(card.get("id", "")),
+		"name": String(card.get("name", "")),
+		"text": _buff_summary_text(String(card.get("text", ""))),
+	}
+	for property_name in ["block_every_turn", "energy_every_turn", "strength_every_turn", "shred_block_every_turn"]:
+		if properties.has(property_name):
+			buff[property_name] = properties[property_name]
+	return buff
+
+
+func _buff_summary_text(card_text: String) -> String:
+	return card_text.trim_prefix("Exile. ").strip_edges()
 
 
 func _deal_damage_to_monster(amount: int) -> void:
@@ -475,6 +544,7 @@ func _on_end_turn_pressed() -> void:
 		discard_pile.append_array(hand)
 		hand.clear()
 	end_turn_button.disabled = true
+	player_strength_this_turn = 0
 	_tick_down_player_statuses()
 	current_turn = "monster"
 	update_ui()
@@ -590,8 +660,8 @@ func roll_monster_intent() -> void:
 func _apply_turn_start_buffs(owner: String) -> void:
 	var buffs := player_buffs if owner == "player" else monster_buffs
 	for buff in buffs:
-		if buff.has("block_on_turn_start"):
-			var block_amount: int = buff["block_on_turn_start"]
+		if buff.has("block_every_turn"):
+			var block_amount: int = buff["block_every_turn"]
 			if owner == "player":
 				player_block += block_amount
 				add_log("%s grants %d block." % [buff["name"], block_amount])
@@ -599,13 +669,13 @@ func _apply_turn_start_buffs(owner: String) -> void:
 				monster_block += block_amount
 				add_log("%s grants the hallway %d block." % [buff["name"], block_amount])
 
-		if buff.has("courage_on_turn_start") and owner == "player":
-			var courage_amount: int = buff["courage_on_turn_start"]
+		if buff.has("energy_every_turn") and owner == "player":
+			var courage_amount: int = buff["energy_every_turn"]
 			player_courage += courage_amount
 			add_log("%s grants %d courage." % [buff["name"], courage_amount])
 
-		if buff.has("shred_block_on_turn_start"):
-			var shred_amount: int = buff["shred_block_on_turn_start"]
+		if buff.has("shred_block_every_turn"):
+			var shred_amount: int = buff["shred_block_every_turn"]
 			if owner == "monster":
 				var removed := mini(player_block, shred_amount)
 				player_block -= removed
@@ -619,8 +689,10 @@ func _apply_turn_start_buffs(owner: String) -> void:
 
 
 func _gain_fight_buff(buff_data: Dictionary) -> void:
+	var buff_id := String(buff_data.get("id", buff_data.get("name", "")))
 	for buff in player_buffs:
-		if buff["name"] == buff_data["name"]:
+		var existing_id := String(buff.get("id", buff.get("name", "")))
+		if existing_id == buff_id:
 			add_log("She already has %s." % buff_data["name"])
 			return
 
@@ -631,10 +703,12 @@ func _gain_fight_buff(buff_data: Dictionary) -> void:
 func _modified_attack_damage(base_damage: int, attacker: String) -> int:
 	var total_damage := base_damage
 	var buffs := player_buffs if attacker == "player" else monster_buffs
+	if attacker == "player":
+		total_damage += player_strength_this_turn
 
 	for buff in buffs:
-		if buff.has("attack_bonus"):
-			total_damage += buff["attack_bonus"]
+		if buff.has("strength_every_turn"):
+			total_damage += buff["strength_every_turn"]
 
 	if attacker == "player" and player_statuses.weak > 0:
 		total_damage = maxi(1, int(floor(total_damage * 0.75)))
@@ -1148,13 +1222,11 @@ func _sync_hand_views() -> void:
 func _build_hand_signature() -> String:
 	var parts: Array[String] = []
 	for card in hand:
-		parts.append("%s|%s|%s|%s|%s|%s|%s" % [
-			card.get("name", ""),
+		parts.append("%s|%s|%s|%s|%s" % [
+			card.get("id", ""),
 			card.get("type", ""),
 			card.get("cost", 0),
-			card.get("damage", -1),
-			card.get("block", -1),
-			card.get("draw", -1),
+			JSON.stringify(_card_properties(card)),
 			card.get("text", ""),
 		])
 	return "||".join(parts)
@@ -1164,7 +1236,7 @@ func _rebuild_hand_views() -> void:
 	# Save old card transforms so remaining cards slide smoothly
 	var old_transforms: Dictionary = {}
 	for view in hand_card_views:
-		var key := "%s|%s" % [view.card_data.get("name", ""), view.card_data.get("type", "")]
+		var key := String(view.card_data.get("id", view.card_data.get("name", "")))
 		if not old_transforms.has(key):
 			old_transforms[key] = []
 		old_transforms[key].append({
@@ -1202,7 +1274,7 @@ func _rebuild_hand_views() -> void:
 			card_view.rotation_degrees = -8.0
 		else:
 			# Existing card — restore old transform for smooth slide
-			var key := "%s|%s" % [hand[i].get("name", ""), hand[i].get("type", "")]
+			var key := String(hand[i].get("id", hand[i].get("name", "")))
 			if old_transforms.has(key) and not old_transforms[key].is_empty():
 				var t: Dictionary = old_transforms[key].pop_front()
 				card_view.position = t["position"]
@@ -1325,7 +1397,8 @@ func _on_hand_card_drag_ended(card_view: CardUI, mouse_position: Vector2) -> voi
 	_refresh_play_area_hint(false, false)
 
 	if can_play and _can_play_card(card_view.card_index):
-		_fly_card_to_discard(card_view)
+		if _card_should_discard(hand[card_view.card_index]):
+			_fly_card_to_discard(card_view)
 		_attempt_play_card(card_view.card_index)
 		return
 
