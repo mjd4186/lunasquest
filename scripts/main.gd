@@ -262,7 +262,7 @@ func _normalize_card_definition(raw_card: Dictionary) -> Dictionary:
 			properties[legacy_property_mappings[legacy_key]] = properties[legacy_key]
 		properties.erase(legacy_key)
 
-	for immediate_key in ["damage", "block", "draw"]:
+	for immediate_key in ["damage", "block", "draw", "heal"]:
 		if card.has(immediate_key) and not properties.has(immediate_key):
 			properties[immediate_key] = card[immediate_key]
 		card.erase(immediate_key)
@@ -464,6 +464,13 @@ func _resolve_card(card: Dictionary) -> bool:
 		for i in draw_amount:
 			_draw_up_to(hand.size() + 1)
 		add_log("She finds a little courage and draws %d card(s)." % draw_amount)
+
+	if properties.has("heal"):
+		var heal_amount: int = int(properties["heal"])
+		var previous_hp := player_hp
+		player_hp = mini(STARTING_HP, player_hp + heal_amount)
+		var restored_hp := player_hp - previous_hp
+		add_log("She heals %d HP." % restored_hp)
 
 	if properties.has("energy_this_turn"):
 		var courage_amount: int = int(properties["energy_this_turn"])

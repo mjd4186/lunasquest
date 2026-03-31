@@ -51,6 +51,19 @@
       }
     },
     {
+      "id": "treato",
+      "name": "Treato",
+      "type": "skill",
+      "cost": 0,
+      "text": "Exile, Heal 3",
+      "flavor_text": "A small reward, immediately understood.",
+      "art_slug": "placeholder",
+      "properties": {
+        "heal": 3,
+        "exile": true
+      }
+    },
+    {
       "id": "favorite_sweater",
       "name": "Favorite Sweater",
       "type": "buff",
