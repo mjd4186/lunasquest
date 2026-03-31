@@ -57,7 +57,7 @@
       "cost": 0,
       "text": "Exile, Heal 3",
       "flavor_text": "A small reward, immediately understood.",
-      "art_slug": "placeholder",
+      "art_slug": "treato",
       "properties": {
         "heal": 3,
         "exile": true
