@@ -451,9 +451,10 @@ func _resolve_card(card: Dictionary, spent_courage := -1) -> bool:
 		return _card_should_discard(card)
 
 	if properties.get("x_cost", false) and properties.has("damage_per_x"):
-		var x_damage := int(properties["damage_per_x"]) * spent_courage
-		add_log("%s spends %d courage for %d damage." % [card["name"], spent_courage, x_damage])
-		var scaled_amount := _modified_attack_damage(x_damage, "player")
+		var per_courage_damage := int(properties["damage_per_x"]) + _attack_flat_bonus("player")
+		var raw_damage := per_courage_damage * spent_courage
+		var scaled_amount := _apply_attack_status_modifiers(raw_damage, "player")
+		add_log("%s spends %d courage for %d damage before block." % [card["name"], spent_courage, scaled_amount])
 		_deal_damage_to_monster(scaled_amount)
 
 	if properties.has("damage"):
@@ -734,20 +735,28 @@ func _gain_fight_buff(buff_data: Dictionary) -> void:
 
 
 func _modified_attack_damage(base_damage: int, attacker: String) -> int:
-	var total_damage := base_damage
+	var total_damage := base_damage + _attack_flat_bonus(attacker)
+	return _apply_attack_status_modifiers(total_damage, attacker)
+
+
+func _attack_flat_bonus(attacker: String) -> int:
+	var total_bonus := 0
 	var buffs := player_buffs if attacker == "player" else monster_buffs
 	if attacker == "player":
-		total_damage += player_strength_this_turn
+		total_bonus += player_strength_this_turn
 
 	for buff in buffs:
 		if buff.has("strength_every_turn"):
-			total_damage += buff["strength_every_turn"]
+			total_bonus += buff["strength_every_turn"]
 
+	return total_bonus
+
+
+func _apply_attack_status_modifiers(total_damage: int, attacker: String) -> int:
 	if attacker == "player" and player_statuses.weak > 0:
 		total_damage = maxi(1, int(floor(total_damage * 0.75)))
 	if attacker == "player" and monster_statuses.vulnerable > 0:
 		total_damage = int(ceil(total_damage * 1.5))
-
 	return total_damage
 
 
