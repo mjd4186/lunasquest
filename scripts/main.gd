@@ -14,11 +14,11 @@ const ICON_SWORDS := preload("res://assets/icons/lucide/swords.svg")
 const ICON_ALERT := preload("res://assets/icons/lucide/triangle-alert.svg")
 const ICON_SKULL := preload("res://assets/icons/lucide/skull.svg")
 const COMPOSITION_SIZE := Vector2(1920, 1080)
-const BASE_PREVIEW_CARD_SIZE := Vector2(280, 420)
 const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
 const CARDS_DATA_PATH := "res://data/cards.json"
 const STARTING_DECK_DATA_PATH := "res://data/starting_deck.json"
+const PLAYER_AVATAR_PATH := "res://luna.png"
 const CARD_ART_DIRECTORY := "res://cardart"
 const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
@@ -35,13 +35,19 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var title_label: Label = %TitleLabel
 @onready var flavor_label: Label = %FlavorLabel
 @onready var monster_name_label: Label = %MonsterName
-@onready var preview_title_label: Label = %PreviewTitleLabel
-@onready var preview_card_anchor: CenterContainer = %PreviewCardAnchor
+@onready var courage_orb_panel: PanelContainer = %CourageOrbPanel
+@onready var courage_orb_label: Label = %CourageOrbLabel
+@onready var courage_orb_caption: Label = %CourageOrbCaption
 @onready var draw_pile_card_anchor: CenterContainer = %DrawPileCardAnchor
 @onready var discard_pile_card_anchor: CenterContainer = %DiscardPileCardAnchor
-@onready var player_hp_label: Label = %PlayerHPLabel
-@onready var player_courage_label: Label = %PlayerCourageLabel
-@onready var player_block_label: Label = %PlayerBlockLabel
+@onready var player_avatar_name_label: Label = %PlayerAvatarName
+@onready var player_avatar_frame: PanelContainer = %PlayerAvatarFrame
+@onready var player_avatar_texture: TextureRect = %PlayerAvatarTexture
+@onready var player_bar_panel: PanelContainer = %PlayerBarPanel
+@onready var player_bar_track: Control = %PlayerBarTrack
+@onready var player_bar_fill: ColorRect = %PlayerBarFill
+@onready var player_block_fill: ColorRect = %PlayerBlockFill
+@onready var player_bar_label: Label = %PlayerBarLabel
 @onready var player_name_label: Label = %PlayerName
 @onready var player_status_label: Label = %PlayerStatusLabel
 @onready var player_buffs_label: Label = %PlayerBuffsLabel
@@ -102,7 +108,6 @@ var pending_intent: Dictionary = {}
 var battle_over := false
 
 var hand_card_views: Array[CardUI] = []
-var preview_card_view: CardUI
 var draw_pile_card_view: CardUI
 var discard_pile_card_view: CardUI
 var card_definitions: Array[Dictionary] = []
@@ -111,13 +116,10 @@ var card_definitions_by_name: Dictionary = {}
 
 var hand_signature := ""
 var hovered_card_index := -1
-var pinned_preview_card: Dictionary = {}
-var pinned_preview_title := "Hover a card"
 var play_area_idle_style: StyleBoxFlat
 var play_area_hover_style: StyleBoxFlat
 var play_area_valid_style: StyleBoxFlat
 var layout_scale := 1.0
-var preview_card_size := BASE_PREVIEW_CARD_SIZE
 var pile_card_size := BASE_PILE_CARD_SIZE
 var hand_card_size := BASE_HAND_CARD_SIZE
 var hovered_pile := ""
@@ -141,6 +143,7 @@ func _ready() -> void:
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	reset_button.pressed.connect(_on_reset_button_pressed)
 
+	_load_player_avatar()
 	_create_static_card_views()
 	_apply_visual_theme()
 	_install_lucide_icons()
@@ -149,6 +152,15 @@ func _ready() -> void:
 	_load_card_definitions()
 	_start_battle()
 	call_deferred("_update_canvas_transform")
+
+
+func _load_player_avatar() -> void:
+	var image := Image.load_from_file(ProjectSettings.globalize_path(PLAYER_AVATAR_PATH))
+	if image == null or image.is_empty():
+		push_warning("Unable to load player avatar from %s." % PLAYER_AVATAR_PATH)
+		return
+
+	player_avatar_texture.texture = ImageTexture.create_from_image(image)
 
 
 func _start_battle() -> void:
@@ -169,8 +181,6 @@ func _start_battle() -> void:
 	hand_signature = ""
 	hovered_card_index = -1
 	hovered_pile = ""
-	pinned_preview_card.clear()
-	pinned_preview_title = "Hover a card"
 	pile_hover_panel.visible = false
 	_pending_draw_count = 0
 	_draw_start_index = -1
@@ -180,6 +190,7 @@ func _start_battle() -> void:
 	flavor_label.text = "Every creak sounds enormous. Every shadow looks hungry."
 	monster_name_label.text = "The Dark Hallway"
 	player_name_label.text = "The Little Dog"
+	player_avatar_name_label.text = "Luna"
 	monster_stage_label.text = "The Dark Hallway"
 
 	draw_pile = _build_starting_deck()
@@ -433,7 +444,6 @@ func _attempt_play_card(index: int) -> bool:
 	if should_discard:
 		discard_pile.append(card)
 	hand.remove_at(index)
-	_set_pinned_preview(card, "Last played")
 
 	if _check_battle_end():
 		update_ui()
@@ -791,9 +801,7 @@ func _check_battle_end() -> bool:
 
 
 func update_ui() -> void:
-	player_hp_label.text = "HP %d / %d" % [player_hp, STARTING_HP]
-	player_courage_label.text = "Courage %d / %d" % [player_courage, COURAGE_PER_TURN]
-	player_block_label.text = "Block %d" % player_block
+	courage_orb_label.text = str(player_courage)
 	if player_panel_hp_label:
 		player_panel_hp_label.text = "%d / %d" % [player_hp, STARTING_HP]
 	if player_panel_block_label:
@@ -806,6 +814,7 @@ func update_ui() -> void:
 	monster_block_label.text = "Block %d" % monster_block
 	monster_status_label.text = _format_statuses(monster_statuses, "Only restless shadows.")
 	monster_buffs_label.text = _format_buffs(monster_buffs, "No dark traits.")
+	_update_player_bar()
 
 	if monster_hp <= 0:
 		turn_label.text = "Encounter Won"
@@ -823,7 +832,6 @@ func update_ui() -> void:
 
 	_sync_pile_views()
 	_sync_hand_views()
-	_refresh_preview()
 	_refresh_play_area_hint(false, false)
 
 
@@ -962,14 +970,6 @@ func _build_intent_text() -> String:
 
 
 func _create_static_card_views() -> void:
-	preview_card_view = CARD_UI_SCENE.instantiate()
-	preview_card_anchor.add_child(preview_card_view)
-	preview_card_view.set_display_size(preview_card_size)
-	preview_card_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	preview_card_view.draggable = false
-	preview_card_view.set_hover_enabled(false)
-	preview_card_view.visible = false
-
 	draw_pile_card_view = CARD_UI_SCENE.instantiate()
 	draw_pile_card_anchor.add_child(draw_pile_card_view)
 	draw_pile_card_view.set_display_size(pile_card_size)
@@ -993,10 +993,30 @@ func _create_static_card_views() -> void:
 	discard_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
 
 
+func _update_player_bar() -> void:
+	var track_size := player_bar_track.size
+	if track_size.x <= 0.0 or track_size.y <= 0.0:
+		track_size = player_bar_track.get_combined_minimum_size()
+	if track_size.x <= 0.0 or track_size.y <= 0.0:
+		return
+
+	var hp_ratio := clampf(float(player_hp) / float(STARTING_HP), 0.0, 1.0)
+	var hp_width := track_size.x * hp_ratio
+	player_bar_fill.position = Vector2.ZERO
+	player_bar_fill.size = Vector2(hp_width, track_size.y)
+
+	var block_ratio := clampf(float(player_block) / float(STARTING_HP), 0.0, 1.0)
+	var block_width := minf(track_size.x - hp_width, track_size.x * block_ratio)
+	player_block_fill.visible = player_block > 0 and block_width > 0.0
+	player_block_fill.position = Vector2(hp_width, 0.0)
+	player_block_fill.size = Vector2(block_width, track_size.y)
+
+	player_bar_label.text = "%d / %d" % [player_hp, STARTING_HP]
+	if player_block > 0:
+		player_bar_label.text += "   +%d block" % player_block
+
+
 func _install_lucide_icons() -> void:
-	_attach_icon_before_label(player_hp_label, ICON_HEART, Vector2(26, 26), 8)
-	_attach_icon_before_label(player_block_label, ICON_SHIELD, Vector2(26, 26), 8)
-	_attach_icon_before_label(player_courage_label, ICON_SPARKLES, Vector2(26, 26), 8)
 	_attach_icon_before_label(monster_hp_label, ICON_HEART, Vector2(18, 18), 6)
 	_attach_icon_before_label(monster_block_label, ICON_SHIELD, Vector2(18, 18), 6)
 	_install_player_quick_stats()
@@ -1148,6 +1168,9 @@ func _apply_visual_theme() -> void:
 	monster_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0313726, 0.0392157, 0.0666667, 0.58), Color(1.0, 0.839216, 0.596078, 0.2), 30, 2, 20))
 	intent_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.105882, 0.0745098, 0.0392157, 0.66), Color(0.996078, 0.854902, 0.556863, 0.32), 28, 2, 18))
 	play_area.add_theme_stylebox_override("panel", play_area_idle_style)
+	courage_orb_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.141176, 0.180392, 0.360784, 0.92), Color(0.529412, 0.807843, 1.0, 0.85), 999, 4, 24))
+	player_avatar_frame.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0313726, 0.0470588, 0.0784314, 0.34), Color(0.988235, 0.85098, 0.603922, 0.2), 36, 2, 26))
+	player_bar_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.0313726, 0.054902, 0.88), Color(0.988235, 0.85098, 0.603922, 0.24), 22, 2, 16))
 	player_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0352941, 0.0431373, 0.0705882, 0.52), Color(1.0, 0.839216, 0.596078, 0.16), 24, 2, 16))
 	log_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.027451, 0.0470588, 0.56), Color(1.0, 0.839216, 0.596078, 0.14), 22, 2, 16))
 	var pile_hover_style := _make_panel_style(Color(0.0156863, 0.027451, 0.0470588, 0.92), Color(1.0, 0.839216, 0.596078, 0.26), 18, 2, 12)
@@ -1168,10 +1191,17 @@ func _apply_visual_theme() -> void:
 	monster_emoji_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 0.95))
 	monster_emoji_label.add_theme_constant_override("outline_size", 4)
 
-	for label in [player_hp_label, player_block_label, player_courage_label, player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
+	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
 		label.add_theme_color_override("font_color", Color(0.968627, 0.941176, 0.854902, 1.0))
 		label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
 		label.add_theme_constant_override("outline_size", 2)
+
+	player_bar_label.add_theme_color_override("font_color", Color(0.988235, 0.964706, 0.905882, 1.0))
+	player_bar_label.add_theme_color_override("font_outline_color", Color(0.0156863, 0.0196078, 0.0352941, 0.95))
+	player_bar_label.add_theme_constant_override("outline_size", 3)
+	courage_orb_label.add_theme_color_override("font_color", Color(0.980392, 0.980392, 1.0, 1.0))
+	courage_orb_label.add_theme_color_override("font_outline_color", Color(0.0666667, 0.0823529, 0.180392, 0.95))
+	courage_orb_label.add_theme_constant_override("outline_size", 4)
 
 	log_label.add_theme_color_override("default_color", Color(0.964706, 0.937255, 0.870588, 1.0))
 	log_label.add_theme_font_size_override("normal_font_size", 17)
@@ -1203,9 +1233,10 @@ func _apply_fixed_typography() -> void:
 	_style_support_text(flavor_label, 16)
 	_style_header(monster_name_label, 24)
 	_style_header(player_name_label, 22)
+	_style_header(player_avatar_name_label, 24)
 	_style_header(turn_label, 22)
 	_style_header(intent_label, 20)
-	_style_header(preview_title_label, 18)
+	_style_support_text(courage_orb_caption, 18)
 	_style_support_text(play_instruction_label, 18)
 	_style_header(log_title_label, 21)
 	pile_hover_label.add_theme_font_size_override("font_size", 18)
@@ -1213,24 +1244,20 @@ func _apply_fixed_typography() -> void:
 	discard_pile_label.add_theme_font_size_override("font_size", 24)
 	monster_stage_label.add_theme_font_size_override("font_size", 54)
 	monster_emoji_label.add_theme_font_size_override("font_size", 84)
-	for label in [player_hp_label, player_block_label, player_courage_label]:
-		label.add_theme_font_size_override("font_size", 24)
+	courage_orb_label.add_theme_font_size_override("font_size", 74)
+	player_bar_label.add_theme_font_size_override("font_size", 24)
 	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label]:
 		_style_support_text(label, 17)
 
 
 func _apply_fixed_layout_metrics() -> void:
-	preview_card_size = BASE_PREVIEW_CARD_SIZE
 	pile_card_size = BASE_PILE_CARD_SIZE
 	hand_card_size = BASE_HAND_CARD_SIZE
-	preview_card_anchor.custom_minimum_size = preview_card_size
 	draw_pile_card_anchor.custom_minimum_size = pile_card_size
 	discard_pile_card_anchor.custom_minimum_size = pile_card_size
 	end_turn_button.custom_minimum_size = END_TURN_BUTTON_SIZE
 	reset_button.custom_minimum_size = END_TURN_BUTTON_SIZE
 
-	if preview_card_view:
-		preview_card_view.set_display_size(preview_card_size)
 	if draw_pile_card_view:
 		draw_pile_card_view.set_display_size(pile_card_size)
 	if discard_pile_card_view:
@@ -1461,31 +1488,6 @@ func _layout_hand_cards(animated := true) -> void:
 
 	_draw_start_index = -1
 
-
-func _set_pinned_preview(card: Dictionary, title: String) -> void:
-	pinned_preview_card = card.duplicate(true)
-	pinned_preview_title = title
-
-
-func _refresh_preview() -> void:
-	if hovered_card_index >= 0 and hovered_card_index < hand.size():
-		preview_title_label.text = "Card Preview"
-		preview_card_view.visible = true
-		preview_card_view.set_face_down(false)
-		preview_card_view.set_card_data(_build_card_display_data(hand[hovered_card_index]))
-		return
-
-	if not pinned_preview_card.is_empty():
-		preview_title_label.text = pinned_preview_title
-		preview_card_view.visible = true
-		preview_card_view.set_face_down(false)
-		preview_card_view.set_card_data(_build_card_display_data(pinned_preview_card))
-		return
-
-	preview_title_label.text = "Hover a card"
-	preview_card_view.visible = false
-
-
 func _refresh_play_area_hint(is_dragging: bool, is_valid_drop: bool) -> void:
 	if battle_over:
 		play_area.add_theme_stylebox_override("panel", play_area_idle_style)
@@ -1519,7 +1521,6 @@ func _drop_position_is_valid(drop_position: Vector2) -> bool:
 func _on_hand_card_drag_started(card_view: CardUI) -> void:
 	_hide_pile_hover()
 	hovered_card_index = card_view.card_index
-	_refresh_preview()
 	_refresh_play_area_hint(true, false)
 
 
@@ -1539,7 +1540,6 @@ func _on_hand_card_drag_ended(card_view: CardUI, mouse_position: Vector2) -> voi
 		return
 
 	_layout_hand_cards(true)
-	_refresh_preview()
 
 
 func _on_hand_card_hover_changed(card_view: CardUI, is_hovering: bool) -> void:
@@ -1548,7 +1548,6 @@ func _on_hand_card_hover_changed(card_view: CardUI, is_hovering: bool) -> void:
 	else:
 		if hovered_card_index == card_view.card_index:
 			hovered_card_index = -1
-	_refresh_preview()
 
 
 func _on_hand_area_resized() -> void:

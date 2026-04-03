@@ -155,27 +155,38 @@ autowrap_mode = 3
 horizontal_alignment = 1
 text = "Intent: Attack for 7"
 
-[node name="PreviewDock" type="Control" parent="CombatCanvas"]
-offset_left = 18.0
-offset_top = 632.0
-offset_right = 322.0
-offset_bottom = 1090.0
+[node name="CourageOrbDock" type="Control" parent="CombatCanvas"]
+unique_name_in_owner = true
+offset_left = 22.0
+offset_top = 748.0
+offset_right = 302.0
+offset_bottom = 1036.0
 mouse_filter = 2
 
-[node name="PreviewTitleLabel" type="Label" parent="CombatCanvas/PreviewDock"]
+[node name="CourageOrbPanel" type="PanelContainer" parent="CombatCanvas/CourageOrbDock"]
 unique_name_in_owner = true
-offset_right = 304.0
-offset_bottom = 30.0
+offset_left = 38.0
+offset_top = 20.0
+offset_right = 242.0
+offset_bottom = 224.0
 mouse_filter = 2
-text = "Hover a card"
+
+[node name="CourageOrbLabel" type="Label" parent="CombatCanvas/CourageOrbDock/CourageOrbPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+text = "3"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="PreviewCardAnchor" type="CenterContainer" parent="CombatCanvas/PreviewDock"]
+[node name="CourageOrbCaption" type="Label" parent="CombatCanvas/CourageOrbDock"]
 unique_name_in_owner = true
-offset_top = 38.0
-offset_right = 304.0
-offset_bottom = 458.0
+offset_top = 234.0
+offset_right = 280.0
+offset_bottom = 268.0
 mouse_filter = 2
+text = "Courage"
+horizontal_alignment = 1
 
 [node name="RightColumn" type="VBoxContainer" parent="CombatCanvas"]
 offset_left = 1580.0
@@ -300,6 +311,99 @@ horizontal_alignment = 1
 autowrap_mode = 3
 text = "Drag a card onto the hallway rug to play it."
 
+[node name="PlayerAvatarDock" type="Control" parent="CombatCanvas"]
+unique_name_in_owner = true
+offset_left = 96.0
+offset_top = 260.0
+offset_right = 500.0
+offset_bottom = 760.0
+mouse_filter = 2
+
+[node name="PlayerAvatarFrame" type="PanelContainer" parent="CombatCanvas/PlayerAvatarDock"]
+unique_name_in_owner = true
+offset_left = 18.0
+offset_top = 8.0
+offset_right = 366.0
+offset_bottom = 372.0
+mouse_filter = 2
+
+[node name="PlayerAvatarTexture" type="TextureRect" parent="CombatCanvas/PlayerAvatarDock/PlayerAvatarFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerAvatarName" type="Label" parent="CombatCanvas/PlayerAvatarDock"]
+unique_name_in_owner = true
+offset_left = 28.0
+offset_top = 372.0
+offset_right = 356.0
+offset_bottom = 410.0
+mouse_filter = 2
+text = "Luna"
+horizontal_alignment = 1
+
+[node name="PlayerBarPanel" type="PanelContainer" parent="CombatCanvas/PlayerAvatarDock"]
+unique_name_in_owner = true
+offset_left = 2.0
+offset_top = 418.0
+offset_right = 388.0
+offset_bottom = 478.0
+mouse_filter = 2
+
+[node name="PlayerBarMargin" type="MarginContainer" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 9
+
+[node name="PlayerBarTrack" type="Control" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(366, 42)
+layout_mode = 2
+clip_contents = true
+mouse_filter = 2
+
+[node name="PlayerBarBackground" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0509804, 0.0666667, 0.0980392, 0.94)
+
+[node name="PlayerBarFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+unique_name_in_owner = true
+offset_right = 250.0
+offset_bottom = 42.0
+mouse_filter = 2
+color = Color(0.839216, 0.231373, 0.262745, 1)
+
+[node name="PlayerBlockFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+unique_name_in_owner = true
+offset_left = 250.0
+offset_right = 300.0
+offset_bottom = 42.0
+mouse_filter = 2
+color = Color(0.247059, 0.580392, 0.972549, 0.95)
+
+[node name="PlayerBarLabel" type="Label" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "28 / 28"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="DrawPileDock" type="Control" parent="CombatCanvas"]
 offset_left = 304.0
 offset_top = 790.0
@@ -376,21 +480,6 @@ theme_override_constants/separation = 18
 [node name="HudSpacerLeft" type="Control" parent="CombatCanvas/BottomHud/HudTopRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="PlayerHPLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "HP 28 / 28"
-
-[node name="PlayerBlockLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Block 0"
-
-[node name="PlayerCourageLabel" type="Label" parent="CombatCanvas/BottomHud/HudTopRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Courage 3 / 3"
 
 [node name="HudSpacer" type="Control" parent="CombatCanvas/BottomHud/HudTopRow"]
 layout_mode = 2
