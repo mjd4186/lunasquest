@@ -41,7 +41,7 @@ jobs:
           godot_export_templates_download_url: ${{ env.GODOT_EXPORT_TEMPLATES_URL }}
           relative_project_path: ./
           presets_to_export: Web
-          cache: true
+          cache: false
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

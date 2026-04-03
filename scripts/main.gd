@@ -18,8 +18,8 @@ const BASE_PILE_CARD_SIZE := Vector2(156, 234)
 const BASE_HAND_CARD_SIZE := Vector2(208, 312)
 const CARDS_DATA_PATH := "res://data/cards.json"
 const STARTING_DECK_DATA_PATH := "res://data/starting_deck.json"
-const PLAYER_AVATAR_PATH := "res://luna.png"
-const MONSTER_AVATAR_PATH := "res://demon-hall.png"
+const PLAYER_AVATAR_TEXTURE := preload("res://luna.png")
+const MONSTER_AVATAR_TEXTURE := preload("res://demon-hall.png")
 const CARD_ART_DIRECTORY := "res://cardart"
 const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
@@ -165,21 +165,19 @@ func _ready() -> void:
 
 
 func _load_player_avatar() -> void:
-	var image := Image.load_from_file(ProjectSettings.globalize_path(PLAYER_AVATAR_PATH))
-	if image == null or image.is_empty():
-		push_warning("Unable to load player avatar from %s." % PLAYER_AVATAR_PATH)
+	if PLAYER_AVATAR_TEXTURE == null:
+		push_warning("Unable to load player avatar texture.")
 		return
 
-	player_avatar_texture.texture = ImageTexture.create_from_image(image)
+	player_avatar_texture.texture = PLAYER_AVATAR_TEXTURE
 
 
 func _load_monster_avatar() -> void:
-	var image := Image.load_from_file(ProjectSettings.globalize_path(MONSTER_AVATAR_PATH))
-	if image == null or image.is_empty():
-		push_warning("Unable to load monster avatar from %s." % MONSTER_AVATAR_PATH)
+	if MONSTER_AVATAR_TEXTURE == null:
+		push_warning("Unable to load monster avatar texture.")
 		return
 
-	monster_stage_texture.texture = ImageTexture.create_from_image(image)
+	monster_stage_texture.texture = MONSTER_AVATAR_TEXTURE
 
 
 func _start_battle() -> void:
