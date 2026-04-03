@@ -6,7 +6,6 @@ const HAND_SIZE := 5
 const COURAGE_PER_TURN := 3
 
 const CARD_UI_SCENE := preload("res://scenes/card_ui.tscn")
-const ICON_HEART := preload("res://assets/icons/lucide/heart.svg")
 const ICON_SHIELD := preload("res://assets/icons/lucide/shield.svg")
 const ICON_SPARKLES := preload("res://assets/icons/lucide/sparkles.svg")
 const ICON_MOON_STAR := preload("res://assets/icons/lucide/moon-star.svg")
@@ -44,18 +43,10 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var player_avatar_name_label: Label = %PlayerAvatarName
 @onready var player_avatar_frame: PanelContainer = %PlayerAvatarFrame
 @onready var player_avatar_texture: TextureRect = %PlayerAvatarTexture
-@onready var player_bar_panel: PanelContainer = %PlayerBarPanel
-@onready var player_hp_bar_track: Control = %PlayerHPBarTrack
-@onready var player_hp_bar_fill: ColorRect = %PlayerHPBarFill
-@onready var player_hp_bar_label: Label = %PlayerHPBarLabel
-@onready var player_block_bar_track: Control = %PlayerBlockBarTrack
-@onready var player_block_bar_fill: ColorRect = %PlayerBlockBarFill
-@onready var player_block_bar_label: Label = %PlayerBlockBarLabel
+@onready var player_status_bars = %PlayerStatusBars
 @onready var player_name_label: Label = %PlayerName
 @onready var player_status_label: Label = %PlayerStatusLabel
 @onready var player_buffs_label: Label = %PlayerBuffsLabel
-@onready var monster_hp_label: Label = %MonsterHPLabel
-@onready var monster_block_label: Label = %MonsterBlockLabel
 @onready var monster_status_label: Label = %MonsterStatusLabel
 @onready var monster_buffs_label: Label = %MonsterBuffsLabel
 @onready var intent_label: Label = %IntentLabel
@@ -72,12 +63,7 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var pile_hover_label: Label = %PileHoverLabel
 @onready var monster_stage_texture: TextureRect = %MonsterStageTexture
 @onready var monster_stage_label: Label = %MonsterStageLabel
-@onready var monster_hp_bar_track: Control = %MonsterHPBarTrack
-@onready var monster_hp_bar_fill: ColorRect = %MonsterHPBarFill
-@onready var monster_hp_bar_label: Label = %MonsterHPBarLabel
-@onready var monster_block_bar_track: Control = %MonsterBlockBarTrack
-@onready var monster_block_bar_fill: ColorRect = %MonsterBlockBarFill
-@onready var monster_block_bar_label: Label = %MonsterBlockBarLabel
+@onready var monster_status_bars = %MonsterStatusBars
 
 @onready var title_panel: PanelContainer = %TitlePanel
 @onready var monster_panel: PanelContainer = %MonsterPanel
@@ -138,8 +124,6 @@ var _draw_start_index := -1
 var _flying_cards: Array[CardUI] = []
 var player_bonus_courage_next_turn := 0
 var player_strength_this_turn := 0
-var player_panel_hp_label: Label
-var player_panel_block_label: Label
 var player_panel_courage_label: Label
 var intent_icon_rect: TextureRect
 
@@ -819,20 +803,14 @@ func _check_battle_end() -> bool:
 
 func update_ui() -> void:
 	courage_orb_label.text = str(player_courage)
-	if player_panel_hp_label:
-		player_panel_hp_label.text = "%d / %d" % [player_hp, STARTING_HP]
-	if player_panel_block_label:
-		player_panel_block_label.text = str(player_block)
 	if player_panel_courage_label:
 		player_panel_courage_label.text = "%d / %d" % [player_courage, COURAGE_PER_TURN]
 	player_status_label.text = _format_statuses(player_statuses, "Steady tail. No debuffs.")
 	player_buffs_label.text = _format_buffs(player_buffs, "No comfort items yet.")
-	monster_hp_label.text = "HP %d / %d" % [monster_hp, MONSTER_STARTING_HP]
-	monster_block_label.text = "Block %d" % monster_block
 	monster_status_label.text = _format_statuses(monster_statuses, "Only restless shadows.")
 	monster_buffs_label.text = _format_buffs(monster_buffs, "No dark traits.")
-	_update_unit_bars(player_hp, STARTING_HP, player_block, player_hp_bar_track, player_hp_bar_fill, player_hp_bar_label, player_block_bar_track, player_block_bar_fill, player_block_bar_label)
-	_update_unit_bars(monster_hp, MONSTER_STARTING_HP, monster_block, monster_hp_bar_track, monster_hp_bar_fill, monster_hp_bar_label, monster_block_bar_track, monster_block_bar_fill, monster_block_bar_label)
+	player_status_bars.set_values(player_hp, STARTING_HP, player_block)
+	monster_status_bars.set_values(monster_hp, MONSTER_STARTING_HP, monster_block)
 
 	if monster_hp <= 0:
 		turn_label.text = "Encounter Won"
@@ -1011,63 +989,9 @@ func _create_static_card_views() -> void:
 	discard_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
 
 
-func _update_unit_bars(current_hp: int, max_hp: int, current_block: int, hp_track: Control, hp_fill: ColorRect, hp_label: Label, block_track: Control, block_fill: ColorRect, block_label: Label) -> void:
-	var hp_track_size := hp_track.size
-	if hp_track_size.x <= 0.0 or hp_track_size.y <= 0.0:
-		hp_track_size = hp_track.get_combined_minimum_size()
-	if hp_track_size.x > 0.0 and hp_track_size.y > 0.0:
-		var hp_ratio := clampf(float(current_hp) / float(max_hp), 0.0, 1.0)
-		hp_fill.position = Vector2.ZERO
-		hp_fill.size = Vector2(hp_track_size.x * hp_ratio, hp_track_size.y)
-
-	var block_track_size := block_track.size
-	if block_track_size.x <= 0.0 or block_track_size.y <= 0.0:
-		block_track_size = block_track.get_combined_minimum_size()
-	if block_track_size.x > 0.0 and block_track_size.y > 0.0:
-		var block_ratio := clampf(float(current_block) / float(max_hp), 0.0, 1.0)
-		block_fill.position = Vector2.ZERO
-		block_fill.size = Vector2(block_track_size.x * block_ratio, block_track_size.y)
-
-	hp_label.text = "%d / %d" % [current_hp, max_hp]
-	block_label.text = "Block %d" % current_block
-
-
 func _install_lucide_icons() -> void:
-	_attach_icon_before_label(monster_hp_label, ICON_HEART, Vector2(18, 18), 6)
-	_attach_icon_before_label(monster_block_label, ICON_SHIELD, Vector2(18, 18), 6)
 	_install_player_quick_stats()
 	_install_intent_icon()
-
-
-func _attach_icon_before_label(label: Label, icon_texture: Texture2D, icon_size: Vector2, separation: int) -> void:
-	var parent := label.get_parent()
-	if parent == null:
-		return
-	if parent is HBoxContainer and String(parent.name).begins_with("IconRow"):
-		return
-
-	var child_index := label.get_index()
-	parent.remove_child(label)
-
-	var row := HBoxContainer.new()
-	row.name = "IconRow%s" % label.name
-	row.add_theme_constant_override("separation", separation)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.size_flags_horizontal = label.size_flags_horizontal
-	row.size_flags_vertical = label.size_flags_vertical
-	parent.add_child(row)
-	parent.move_child(row, child_index)
-
-	var icon := TextureRect.new()
-	icon.name = "%sIcon" % label.name
-	icon.texture = icon_texture
-	icon.custom_minimum_size = icon_size
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(icon)
-	row.add_child(label)
-
 
 func _install_player_quick_stats() -> void:
 	if player_vbox.has_node("PlayerQuickStats"):
@@ -1080,8 +1004,6 @@ func _install_player_quick_stats() -> void:
 	player_vbox.add_child(quick_stats)
 	player_vbox.move_child(quick_stats, player_name_label.get_index() + 1)
 
-	player_panel_hp_label = _create_icon_stat(quick_stats, "PlayerPanelHP", ICON_HEART, Vector2(16, 16), "28 / 28", 15)
-	player_panel_block_label = _create_icon_stat(quick_stats, "PlayerPanelBlock", ICON_SHIELD, Vector2(16, 16), "0", 15)
 	player_panel_courage_label = _create_icon_stat(quick_stats, "PlayerPanelCourage", ICON_SPARKLES, Vector2(16, 16), "3 / 3", 15)
 
 
@@ -1163,7 +1085,6 @@ func _apply_visual_theme() -> void:
 	play_area.add_theme_stylebox_override("panel", play_area_idle_style)
 	courage_orb_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.141176, 0.180392, 0.360784, 0.92), Color(0.529412, 0.807843, 1.0, 0.85), 999, 4, 24))
 	player_avatar_frame.add_theme_stylebox_override("panel", _make_panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0))
-	player_bar_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0))
 	player_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0352941, 0.0431373, 0.0705882, 0.52), Color(1.0, 0.839216, 0.596078, 0.16), 24, 2, 16))
 	log_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.027451, 0.0470588, 0.56), Color(1.0, 0.839216, 0.596078, 0.14), 22, 2, 16))
 	var pile_hover_style := _make_panel_style(Color(0.0156863, 0.027451, 0.0470588, 0.92), Color(1.0, 0.839216, 0.596078, 0.26), 18, 2, 12)
@@ -1182,15 +1103,11 @@ func _apply_visual_theme() -> void:
 	monster_stage_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 1.0))
 	monster_stage_label.add_theme_constant_override("outline_size", 4)
 
-	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
+	for label in [player_status_label, player_buffs_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
 		label.add_theme_color_override("font_color", Color(0.968627, 0.941176, 0.854902, 1.0))
 		label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
 		label.add_theme_constant_override("outline_size", 2)
 
-	for label in [player_hp_bar_label, player_block_bar_label, monster_hp_bar_label, monster_block_bar_label]:
-		label.add_theme_color_override("font_color", Color(0.988235, 0.964706, 0.905882, 1.0))
-		label.add_theme_color_override("font_outline_color", Color(0.0156863, 0.0196078, 0.0352941, 0.95))
-		label.add_theme_constant_override("outline_size", 3)
 	courage_orb_label.add_theme_color_override("font_color", Color(0.980392, 0.980392, 1.0, 1.0))
 	courage_orb_label.add_theme_color_override("font_outline_color", Color(0.0666667, 0.0823529, 0.180392, 0.95))
 	courage_orb_label.add_theme_constant_override("outline_size", 4)
@@ -1236,9 +1153,7 @@ func _apply_fixed_typography() -> void:
 	discard_pile_label.add_theme_font_size_override("font_size", 24)
 	monster_stage_label.add_theme_font_size_override("font_size", 34)
 	courage_orb_label.add_theme_font_size_override("font_size", 74)
-	for label in [player_hp_bar_label, player_block_bar_label, monster_hp_bar_label, monster_block_bar_label]:
-		label.add_theme_font_size_override("font_size", 20)
-	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label]:
+	for label in [player_status_label, player_buffs_label, monster_status_label, monster_buffs_label]:
 		_style_support_text(label, 17)
 
 
