@@ -269,7 +269,63 @@ offset_right = 1656.0
 offset_bottom = 736.0
 mouse_filter = 2
 
-[node name="MonsterStageCenter" type="CenterContainer" parent="CombatCanvas/PlayArea"]
+[node name="MonsterAvatarDock" type="Control" parent="CombatCanvas"]
+unique_name_in_owner = true
+offset_left = 1128.0
+offset_top = 294.0
+offset_right = 1518.0
+offset_bottom = 682.0
+mouse_filter = 2
+
+[node name="MonsterStageTexture" type="TextureRect" parent="CombatCanvas/MonsterAvatarDock"]
+unique_name_in_owner = true
+offset_left = 8.0
+offset_top = 0.0
+offset_right = 392.0
+offset_bottom = 314.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MonsterStageLabel" type="Label" parent="CombatCanvas/MonsterAvatarDock"]
+unique_name_in_owner = true
+offset_left = 20.0
+offset_top = 320.0
+offset_right = 384.0
+offset_bottom = 374.0
+mouse_filter = 2
+horizontal_alignment = 1
+text = "The Dark Hallway"
+
+[node name="MonsterBars" type="VBoxContainer" parent="CombatCanvas/MonsterAvatarDock"]
+unique_name_in_owner = true
+offset_left = 52.0
+offset_top = 380.0
+offset_right = 338.0
+offset_bottom = 454.0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="MonsterHPBarPanel" type="PanelContainer" parent="CombatCanvas/MonsterAvatarDock/MonsterBars"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MonsterHPBarMargin" type="MarginContainer" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterHPBarPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 4
+
+[node name="MonsterHPBarTrack" type="Control" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterHPBarPanel/MonsterHPBarMargin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(266, 24)
+layout_mode = 2
+clip_contents = true
+mouse_filter = 2
+
+[node name="MonsterHPBarBackground" type="ColorRect" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterHPBarPanel/MonsterHPBarMargin/MonsterHPBarTrack"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -277,22 +333,76 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+color = Color(0.0509804, 0.0666667, 0.0980392, 0.94)
 
-[node name="MonsterStageVBox" type="VBoxContainer" parent="CombatCanvas/PlayArea/MonsterStageCenter"]
-layout_mode = 2
-theme_override_constants/separation = 12
+[node name="MonsterHPBarFill" type="ColorRect" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterHPBarPanel/MonsterHPBarMargin/MonsterHPBarTrack"]
+unique_name_in_owner = true
+offset_right = 266.0
+offset_bottom = 24.0
+mouse_filter = 2
+color = Color(0.839216, 0.231373, 0.262745, 1)
 
-[node name="MonsterEmojiLabel" type="Label" parent="CombatCanvas/PlayArea/MonsterStageCenter/MonsterStageVBox"]
+[node name="MonsterHPBarLabel" type="Label" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterHPBarPanel/MonsterHPBarMargin/MonsterHPBarTrack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "40 / 40"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MonsterBlockBarPanel" type="PanelContainer" parent="CombatCanvas/MonsterAvatarDock/MonsterBars"]
 unique_name_in_owner = true
 layout_mode = 2
-horizontal_alignment = 1
-text = ""
+mouse_filter = 2
 
-[node name="MonsterStageLabel" type="Label" parent="CombatCanvas/PlayArea/MonsterStageCenter/MonsterStageVBox"]
-unique_name_in_owner = true
+[node name="MonsterBlockBarMargin" type="MarginContainer" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterBlockBarPanel"]
 layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 4
+
+[node name="MonsterBlockBarTrack" type="Control" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterBlockBarPanel/MonsterBlockBarMargin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(266, 24)
+layout_mode = 2
+clip_contents = true
+mouse_filter = 2
+
+[node name="MonsterBlockBarBackground" type="ColorRect" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterBlockBarPanel/MonsterBlockBarMargin/MonsterBlockBarTrack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0509804, 0.0666667, 0.0980392, 0.94)
+
+[node name="MonsterBlockBarFill" type="ColorRect" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterBlockBarPanel/MonsterBlockBarMargin/MonsterBlockBarTrack"]
+unique_name_in_owner = true
+offset_right = 0.0
+offset_bottom = 24.0
+mouse_filter = 2
+color = Color(0.247059, 0.580392, 0.972549, 0.95)
+
+[node name="MonsterBlockBarLabel" type="Label" parent="CombatCanvas/MonsterAvatarDock/MonsterBars/MonsterBlockBarPanel/MonsterBlockBarMargin/MonsterBlockBarTrack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "Block 0"
 horizontal_alignment = 1
-text = "The Dark Hallway"
+vertical_alignment = 1
 
 [node name="PlayInstructionLabel" type="Label" parent="CombatCanvas/PlayArea"]
 unique_name_in_owner = true
@@ -313,18 +423,18 @@ text = "Drag a card onto the hallway rug to play it."
 
 [node name="PlayerAvatarDock" type="Control" parent="CombatCanvas"]
 unique_name_in_owner = true
-offset_left = 96.0
-offset_top = 260.0
-offset_right = 500.0
-offset_bottom = 760.0
+offset_left = 86.0
+offset_top = 308.0
+offset_right = 398.0
+offset_bottom = 744.0
 mouse_filter = 2
 
 [node name="PlayerAvatarFrame" type="PanelContainer" parent="CombatCanvas/PlayerAvatarDock"]
 unique_name_in_owner = true
-offset_left = 18.0
-offset_top = 8.0
-offset_right = 366.0
-offset_bottom = 372.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 258.0
+offset_bottom = 256.0
 mouse_filter = 2
 
 [node name="PlayerAvatarTexture" type="TextureRect" parent="CombatCanvas/PlayerAvatarDock/PlayerAvatarFrame"]
@@ -336,37 +446,43 @@ stretch_mode = 5
 
 [node name="PlayerAvatarName" type="Label" parent="CombatCanvas/PlayerAvatarDock"]
 unique_name_in_owner = true
-offset_left = 28.0
-offset_top = 372.0
-offset_right = 356.0
-offset_bottom = 410.0
+offset_left = 0.0
+offset_top = 258.0
+offset_right = 258.0
+offset_bottom = 296.0
 mouse_filter = 2
 text = "Luna"
 horizontal_alignment = 1
 
 [node name="PlayerBarPanel" type="PanelContainer" parent="CombatCanvas/PlayerAvatarDock"]
 unique_name_in_owner = true
-offset_left = 2.0
-offset_top = 418.0
-offset_right = 388.0
-offset_bottom = 478.0
+offset_left = 0.0
+offset_top = 310.0
+offset_right = 274.0
+offset_bottom = 390.0
 mouse_filter = 2
 
-[node name="PlayerBarMargin" type="MarginContainer" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel"]
+[node name="PlayerBars" type="VBoxContainer" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="PlayerHPBarMargin" type="MarginContainer" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 9
+theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 9
+theme_override_constants/margin_bottom = 4
 
-[node name="PlayerBarTrack" type="Control" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin"]
+[node name="PlayerHPBarTrack" type="Control" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerHPBarMargin"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(366, 42)
+custom_minimum_size = Vector2(254, 28)
 layout_mode = 2
 clip_contents = true
 mouse_filter = 2
 
-[node name="PlayerBarBackground" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+[node name="PlayerHPBarBackground" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerHPBarMargin/PlayerHPBarTrack"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -376,22 +492,14 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.0509804, 0.0666667, 0.0980392, 0.94)
 
-[node name="PlayerBarFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+[node name="PlayerHPBarFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerHPBarMargin/PlayerHPBarTrack"]
 unique_name_in_owner = true
 offset_right = 250.0
-offset_bottom = 42.0
+offset_bottom = 28.0
 mouse_filter = 2
 color = Color(0.839216, 0.231373, 0.262745, 1)
 
-[node name="PlayerBlockFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
-unique_name_in_owner = true
-offset_left = 250.0
-offset_right = 300.0
-offset_bottom = 42.0
-mouse_filter = 2
-color = Color(0.247059, 0.580392, 0.972549, 0.95)
-
-[node name="PlayerBarLabel" type="Label" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBarMargin/PlayerBarTrack"]
+[node name="PlayerHPBarLabel" type="Label" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerHPBarMargin/PlayerHPBarTrack"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -401,6 +509,50 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 text = "28 / 28"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerBlockBarMargin" type="MarginContainer" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 4
+
+[node name="PlayerBlockBarTrack" type="Control" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerBlockBarMargin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(254, 28)
+layout_mode = 2
+clip_contents = true
+mouse_filter = 2
+
+[node name="PlayerBlockBarBackground" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerBlockBarMargin/PlayerBlockBarTrack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.0509804, 0.0666667, 0.0980392, 0.94)
+
+[node name="PlayerBlockBarFill" type="ColorRect" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerBlockBarMargin/PlayerBlockBarTrack"]
+unique_name_in_owner = true
+offset_right = 0.0
+offset_bottom = 28.0
+mouse_filter = 2
+color = Color(0.247059, 0.580392, 0.972549, 0.95)
+
+[node name="PlayerBlockBarLabel" type="Label" parent="CombatCanvas/PlayerAvatarDock/PlayerBarPanel/PlayerBars/PlayerBlockBarMargin/PlayerBlockBarTrack"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "Block 0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -491,11 +643,6 @@ layout_mode = 2
 visible = false
 text = "Try Again"
 
-[node name="EndTurnButton" type="Button" parent="CombatCanvas/BottomHud/HudTopRow"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "End Turn"
-
 [node name="HandArea" type="Control" parent="CombatCanvas/BottomHud"]
 unique_name_in_owner = true
 layout_mode = 1
@@ -506,6 +653,14 @@ offset_top = 60.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="EndTurnButton" type="Button" parent="CombatCanvas"]
+unique_name_in_owner = true
+offset_left = 1640.0
+offset_top = 850.0
+offset_right = 1828.0
+offset_bottom = 914.0
+text = "End Turn"
 
 [node name="PileHoverPanel" type="PanelContainer" parent="CombatCanvas"]
 unique_name_in_owner = true

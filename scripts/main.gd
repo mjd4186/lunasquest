@@ -19,6 +19,7 @@ const BASE_HAND_CARD_SIZE := Vector2(208, 312)
 const CARDS_DATA_PATH := "res://data/cards.json"
 const STARTING_DECK_DATA_PATH := "res://data/starting_deck.json"
 const PLAYER_AVATAR_PATH := "res://luna.png"
+const MONSTER_AVATAR_PATH := "res://demon-hall.png"
 const CARD_ART_DIRECTORY := "res://cardart"
 const CARD_ART_EXTENSIONS := ["png", "jpg"]
 const END_TURN_BUTTON_SIZE := Vector2(188, 64)
@@ -44,10 +45,12 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var player_avatar_frame: PanelContainer = %PlayerAvatarFrame
 @onready var player_avatar_texture: TextureRect = %PlayerAvatarTexture
 @onready var player_bar_panel: PanelContainer = %PlayerBarPanel
-@onready var player_bar_track: Control = %PlayerBarTrack
-@onready var player_bar_fill: ColorRect = %PlayerBarFill
-@onready var player_block_fill: ColorRect = %PlayerBlockFill
-@onready var player_bar_label: Label = %PlayerBarLabel
+@onready var player_hp_bar_track: Control = %PlayerHPBarTrack
+@onready var player_hp_bar_fill: ColorRect = %PlayerHPBarFill
+@onready var player_hp_bar_label: Label = %PlayerHPBarLabel
+@onready var player_block_bar_track: Control = %PlayerBlockBarTrack
+@onready var player_block_bar_fill: ColorRect = %PlayerBlockBarFill
+@onready var player_block_bar_label: Label = %PlayerBlockBarLabel
 @onready var player_name_label: Label = %PlayerName
 @onready var player_status_label: Label = %PlayerStatusLabel
 @onready var player_buffs_label: Label = %PlayerBuffsLabel
@@ -67,8 +70,14 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var reset_button: Button = %ResetButton
 @onready var pile_hover_panel: PanelContainer = %PileHoverPanel
 @onready var pile_hover_label: Label = %PileHoverLabel
+@onready var monster_stage_texture: TextureRect = %MonsterStageTexture
 @onready var monster_stage_label: Label = %MonsterStageLabel
-@onready var monster_emoji_label: Label = %MonsterEmojiLabel
+@onready var monster_hp_bar_track: Control = %MonsterHPBarTrack
+@onready var monster_hp_bar_fill: ColorRect = %MonsterHPBarFill
+@onready var monster_hp_bar_label: Label = %MonsterHPBarLabel
+@onready var monster_block_bar_track: Control = %MonsterBlockBarTrack
+@onready var monster_block_bar_fill: ColorRect = %MonsterBlockBarFill
+@onready var monster_block_bar_label: Label = %MonsterBlockBarLabel
 
 @onready var title_panel: PanelContainer = %TitlePanel
 @onready var monster_panel: PanelContainer = %MonsterPanel
@@ -144,6 +153,7 @@ func _ready() -> void:
 	reset_button.pressed.connect(_on_reset_button_pressed)
 
 	_load_player_avatar()
+	_load_monster_avatar()
 	_create_static_card_views()
 	_apply_visual_theme()
 	_install_lucide_icons()
@@ -161,6 +171,15 @@ func _load_player_avatar() -> void:
 		return
 
 	player_avatar_texture.texture = ImageTexture.create_from_image(image)
+
+
+func _load_monster_avatar() -> void:
+	var image := Image.load_from_file(ProjectSettings.globalize_path(MONSTER_AVATAR_PATH))
+	if image == null or image.is_empty():
+		push_warning("Unable to load monster avatar from %s." % MONSTER_AVATAR_PATH)
+		return
+
+	monster_stage_texture.texture = ImageTexture.create_from_image(image)
 
 
 func _start_battle() -> void:
@@ -814,7 +833,8 @@ func update_ui() -> void:
 	monster_block_label.text = "Block %d" % monster_block
 	monster_status_label.text = _format_statuses(monster_statuses, "Only restless shadows.")
 	monster_buffs_label.text = _format_buffs(monster_buffs, "No dark traits.")
-	_update_player_bar()
+	_update_unit_bars(player_hp, STARTING_HP, player_block, player_hp_bar_track, player_hp_bar_fill, player_hp_bar_label, player_block_bar_track, player_block_bar_fill, player_block_bar_label)
+	_update_unit_bars(monster_hp, MONSTER_STARTING_HP, monster_block, monster_hp_bar_track, monster_hp_bar_fill, monster_hp_bar_label, monster_block_bar_track, monster_block_bar_fill, monster_block_bar_label)
 
 	if monster_hp <= 0:
 		turn_label.text = "Encounter Won"
@@ -993,27 +1013,25 @@ func _create_static_card_views() -> void:
 	discard_pile_card_view.mouse_exited.connect(_on_pile_mouse_exited)
 
 
-func _update_player_bar() -> void:
-	var track_size := player_bar_track.size
-	if track_size.x <= 0.0 or track_size.y <= 0.0:
-		track_size = player_bar_track.get_combined_minimum_size()
-	if track_size.x <= 0.0 or track_size.y <= 0.0:
-		return
+func _update_unit_bars(current_hp: int, max_hp: int, current_block: int, hp_track: Control, hp_fill: ColorRect, hp_label: Label, block_track: Control, block_fill: ColorRect, block_label: Label) -> void:
+	var hp_track_size := hp_track.size
+	if hp_track_size.x <= 0.0 or hp_track_size.y <= 0.0:
+		hp_track_size = hp_track.get_combined_minimum_size()
+	if hp_track_size.x > 0.0 and hp_track_size.y > 0.0:
+		var hp_ratio := clampf(float(current_hp) / float(max_hp), 0.0, 1.0)
+		hp_fill.position = Vector2.ZERO
+		hp_fill.size = Vector2(hp_track_size.x * hp_ratio, hp_track_size.y)
 
-	var hp_ratio := clampf(float(player_hp) / float(STARTING_HP), 0.0, 1.0)
-	var hp_width := track_size.x * hp_ratio
-	player_bar_fill.position = Vector2.ZERO
-	player_bar_fill.size = Vector2(hp_width, track_size.y)
+	var block_track_size := block_track.size
+	if block_track_size.x <= 0.0 or block_track_size.y <= 0.0:
+		block_track_size = block_track.get_combined_minimum_size()
+	if block_track_size.x > 0.0 and block_track_size.y > 0.0:
+		var block_ratio := clampf(float(current_block) / float(max_hp), 0.0, 1.0)
+		block_fill.position = Vector2.ZERO
+		block_fill.size = Vector2(block_track_size.x * block_ratio, block_track_size.y)
 
-	var block_ratio := clampf(float(player_block) / float(STARTING_HP), 0.0, 1.0)
-	var block_width := minf(track_size.x - hp_width, track_size.x * block_ratio)
-	player_block_fill.visible = player_block > 0 and block_width > 0.0
-	player_block_fill.position = Vector2(hp_width, 0.0)
-	player_block_fill.size = Vector2(block_width, track_size.y)
-
-	player_bar_label.text = "%d / %d" % [player_hp, STARTING_HP]
-	if player_block > 0:
-		player_bar_label.text += "   +%d block" % player_block
+	hp_label.text = "%d / %d" % [current_hp, max_hp]
+	block_label.text = "Block %d" % current_block
 
 
 func _install_lucide_icons() -> void:
@@ -1021,7 +1039,6 @@ func _install_lucide_icons() -> void:
 	_attach_icon_before_label(monster_block_label, ICON_SHIELD, Vector2(18, 18), 6)
 	_install_player_quick_stats()
 	_install_intent_icon()
-	_replace_stage_emoji_with_icon()
 
 
 func _attach_icon_before_label(label: Label, icon_texture: Texture2D, icon_size: Vector2, separation: int) -> void:
@@ -1137,28 +1154,6 @@ func _update_intent_icon() -> void:
 		_:
 			intent_icon_rect.texture = ICON_MOON_STAR
 
-
-func _replace_stage_emoji_with_icon() -> void:
-	var parent := monster_emoji_label.get_parent()
-	if parent == null:
-		return
-	if parent.has_node("MonsterStageIcon"):
-		monster_emoji_label.visible = false
-		return
-
-	var icon := TextureRect.new()
-	icon.name = "MonsterStageIcon"
-	icon.texture = ICON_MOON_STAR
-	icon.custom_minimum_size = Vector2(84, 84)
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	parent.add_child(icon)
-	parent.move_child(icon, monster_emoji_label.get_index())
-	monster_emoji_label.visible = false
-
-
 func _apply_visual_theme() -> void:
 	play_area_idle_style = _make_panel_style(Color(0, 0, 0, 0.0), Color(1.0, 0.847059, 0.588235, 0.0), 44, 0, 0)
 	play_area_hover_style = _make_panel_style(Color(0.0509804, 0.0784314, 0.117647, 0.12), Color(1.0, 0.847059, 0.588235, 0.34), 44, 3, 22)
@@ -1169,8 +1164,8 @@ func _apply_visual_theme() -> void:
 	intent_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.105882, 0.0745098, 0.0392157, 0.66), Color(0.996078, 0.854902, 0.556863, 0.32), 28, 2, 18))
 	play_area.add_theme_stylebox_override("panel", play_area_idle_style)
 	courage_orb_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.141176, 0.180392, 0.360784, 0.92), Color(0.529412, 0.807843, 1.0, 0.85), 999, 4, 24))
-	player_avatar_frame.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0313726, 0.0470588, 0.0784314, 0.34), Color(0.988235, 0.85098, 0.603922, 0.2), 36, 2, 26))
-	player_bar_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.0313726, 0.054902, 0.88), Color(0.988235, 0.85098, 0.603922, 0.24), 22, 2, 16))
+	player_avatar_frame.add_theme_stylebox_override("panel", _make_panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0))
+	player_bar_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 0, 0, 0))
 	player_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0352941, 0.0431373, 0.0705882, 0.52), Color(1.0, 0.839216, 0.596078, 0.16), 24, 2, 16))
 	log_panel.add_theme_stylebox_override("panel", _make_panel_style(Color(0.0196078, 0.027451, 0.0470588, 0.56), Color(1.0, 0.839216, 0.596078, 0.14), 22, 2, 16))
 	var pile_hover_style := _make_panel_style(Color(0.0156863, 0.027451, 0.0470588, 0.92), Color(1.0, 0.839216, 0.596078, 0.26), 18, 2, 12)
@@ -1188,17 +1183,16 @@ func _apply_visual_theme() -> void:
 	monster_stage_label.add_theme_color_override("font_color", Color(0.980392, 0.937255, 0.811765, 1.0))
 	monster_stage_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 1.0))
 	monster_stage_label.add_theme_constant_override("outline_size", 4)
-	monster_emoji_label.add_theme_color_override("font_outline_color", Color(0.0313726, 0.0392157, 0.0666667, 0.95))
-	monster_emoji_label.add_theme_constant_override("outline_size", 4)
 
 	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label, draw_pile_label, discard_pile_label]:
 		label.add_theme_color_override("font_color", Color(0.968627, 0.941176, 0.854902, 1.0))
 		label.add_theme_color_override("font_outline_color", Color(0.0196078, 0.027451, 0.0470588, 0.92))
 		label.add_theme_constant_override("outline_size", 2)
 
-	player_bar_label.add_theme_color_override("font_color", Color(0.988235, 0.964706, 0.905882, 1.0))
-	player_bar_label.add_theme_color_override("font_outline_color", Color(0.0156863, 0.0196078, 0.0352941, 0.95))
-	player_bar_label.add_theme_constant_override("outline_size", 3)
+	for label in [player_hp_bar_label, player_block_bar_label, monster_hp_bar_label, monster_block_bar_label]:
+		label.add_theme_color_override("font_color", Color(0.988235, 0.964706, 0.905882, 1.0))
+		label.add_theme_color_override("font_outline_color", Color(0.0156863, 0.0196078, 0.0352941, 0.95))
+		label.add_theme_constant_override("outline_size", 3)
 	courage_orb_label.add_theme_color_override("font_color", Color(0.980392, 0.980392, 1.0, 1.0))
 	courage_orb_label.add_theme_color_override("font_outline_color", Color(0.0666667, 0.0823529, 0.180392, 0.95))
 	courage_orb_label.add_theme_constant_override("outline_size", 4)
@@ -1242,10 +1236,10 @@ func _apply_fixed_typography() -> void:
 	pile_hover_label.add_theme_font_size_override("font_size", 18)
 	draw_pile_label.add_theme_font_size_override("font_size", 24)
 	discard_pile_label.add_theme_font_size_override("font_size", 24)
-	monster_stage_label.add_theme_font_size_override("font_size", 54)
-	monster_emoji_label.add_theme_font_size_override("font_size", 84)
+	monster_stage_label.add_theme_font_size_override("font_size", 34)
 	courage_orb_label.add_theme_font_size_override("font_size", 74)
-	player_bar_label.add_theme_font_size_override("font_size", 24)
+	for label in [player_hp_bar_label, player_block_bar_label, monster_hp_bar_label, monster_block_bar_label]:
+		label.add_theme_font_size_override("font_size", 20)
 	for label in [player_status_label, player_buffs_label, monster_hp_label, monster_block_label, monster_status_label, monster_buffs_label]:
 		_style_support_text(label, 17)
 
