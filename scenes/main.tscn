@@ -130,6 +130,7 @@ theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
 [node name="IntentVBox" type="VBoxContainer" parent="CombatCanvas/TopHud/IntentPanel/IntentMargin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -200,6 +201,7 @@ theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
 [node name="PlayerVBox" type="VBoxContainer" parent="CombatCanvas/RightColumn/PlayerPanel/PlayerMargin"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
@@ -240,6 +242,7 @@ size_flags_vertical = 3
 theme_override_constants/separation = 10
 
 [node name="LogTitle" type="Label" parent="CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Combat Log"
 

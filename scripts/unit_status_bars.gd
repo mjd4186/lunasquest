@@ -26,11 +26,11 @@ const LABEL_OUTLINE_COLOR := Color(0.0156863, 0.0196078, 0.0352941, 0.95)
 
 var _frame_texture: AtlasTexture
 var _fill_tween: Tween
-var _current_hp := 0
-var _max_hp := 1
-var _current_block := 0
-var _displayed_hp_ratio := 1.0
-var _displayed_block_ratio := 0.0
+var _current_hp: int = 0
+var _max_hp: int = 1
+var _current_block: int = 0
+var _displayed_hp_ratio: float = 1.0
+var _displayed_block_ratio: float = 0.0
 
 
 func _ready() -> void:
@@ -53,7 +53,7 @@ func _ready() -> void:
 	call_deferred("_refresh_layout")
 
 
-func set_values(current_hp: int, max_hp: int, current_block: int, animate := true) -> void:
+func set_values(current_hp: int, max_hp: int, current_block: int, animate: bool = true) -> void:
 	_current_hp = maxi(0, current_hp)
 	_max_hp = maxi(1, max_hp)
 	_current_block = maxi(0, current_block)
@@ -62,8 +62,8 @@ func set_values(current_hp: int, max_hp: int, current_block: int, animate := tru
 	block_label.text = str(_current_block)
 	block_label.visible = _current_block > 0
 
-	var hp_ratio := clampf(float(_current_hp) / float(_max_hp), 0.0, 1.0)
-	var block_ratio := clampf(float(_current_block) / float(_max_hp), 0.0, 1.0)
+	var hp_ratio: float = clampf(float(_current_hp) / float(_max_hp), 0.0, 1.0)
+	var block_ratio: float = clampf(float(_current_block) / float(_max_hp), 0.0, 1.0)
 
 	if _fill_tween:
 		_fill_tween.kill()

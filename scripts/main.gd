@@ -4,6 +4,8 @@ const STARTING_HP := 28
 const MONSTER_STARTING_HP := 40
 const HAND_SIZE := 5
 const COURAGE_PER_TURN := 3
+const PLAYER_SIDE := "player"
+const MONSTER_SIDE := "monster"
 
 const CARD_UI_SCENE := preload("res://scenes/card_ui.tscn")
 const ICON_SHIELD := preload("res://assets/icons/lucide/shield.svg")
@@ -43,7 +45,7 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var player_avatar_name_label: Label = %PlayerAvatarName
 @onready var player_avatar_frame: PanelContainer = %PlayerAvatarFrame
 @onready var player_avatar_texture: TextureRect = %PlayerAvatarTexture
-@onready var player_status_bars = %PlayerStatusBars
+@onready var player_status_bars: UnitStatusBars = %PlayerStatusBars
 @onready var player_name_label: Label = %PlayerName
 @onready var player_status_label: Label = %PlayerStatusLabel
 @onready var player_buffs_label: Label = %PlayerBuffsLabel
@@ -63,31 +65,31 @@ const CARD_HEAL_COLOR := "7fe08a"
 @onready var pile_hover_label: Label = %PileHoverLabel
 @onready var monster_stage_texture: TextureRect = %MonsterStageTexture
 @onready var monster_stage_label: Label = %MonsterStageLabel
-@onready var monster_status_bars = %MonsterStatusBars
+@onready var monster_status_bars: UnitStatusBars = %MonsterStatusBars
 
 @onready var title_panel: PanelContainer = %TitlePanel
 @onready var monster_panel: PanelContainer = %MonsterPanel
 @onready var intent_panel: PanelContainer = %IntentPanel
 @onready var player_panel: PanelContainer = %PlayerPanel
 @onready var log_panel: PanelContainer = %LogPanel
-@onready var log_title_label: Label = get_node("CombatCanvas/RightColumn/LogPanel/LogMargin/LogVBox/LogTitle")
-@onready var player_vbox: VBoxContainer = get_node("CombatCanvas/RightColumn/PlayerPanel/PlayerMargin/PlayerVBox")
-@onready var intent_vbox: VBoxContainer = get_node("CombatCanvas/TopHud/IntentPanel/IntentMargin/IntentVBox")
+@onready var log_title_label: Label = %LogTitle
+@onready var player_vbox: VBoxContainer = %PlayerVBox
+@onready var intent_vbox: VBoxContainer = %IntentVBox
 
-var rng := RandomNumberGenerator.new()
+var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
-var player_hp := STARTING_HP
-var player_courage := COURAGE_PER_TURN
-var player_block := 0
-var monster_hp := MONSTER_STARTING_HP
-var monster_block := 0
+var player_hp: int = STARTING_HP
+var player_courage: int = COURAGE_PER_TURN
+var player_block: int = 0
+var monster_hp: int = MONSTER_STARTING_HP
+var monster_block: int = 0
 
-var player_statuses := {
+var player_statuses: Dictionary = {
 	"weak": 0,
 	"frail": 0,
 }
 
-var monster_statuses := {
+var monster_statuses: Dictionary = {
 	"vulnerable": 0,
 }
 
@@ -97,10 +99,10 @@ var hand: Array[Dictionary] = []
 var player_buffs: Array[Dictionary] = []
 var monster_buffs: Array[Dictionary] = []
 
-var turn_number := 1
-var current_turn := "player"
+var turn_number: int = 1
+var current_turn: String = PLAYER_SIDE
 var pending_intent: Dictionary = {}
-var battle_over := false
+var battle_over: bool = false
 
 var hand_card_views: Array[CardUI] = []
 var draw_pile_card_view: CardUI
@@ -109,21 +111,21 @@ var card_definitions: Array[Dictionary] = []
 var card_definitions_by_id: Dictionary = {}
 var card_definitions_by_name: Dictionary = {}
 
-var hand_signature := ""
-var hovered_card_index := -1
+var hand_signature: String = ""
+var hovered_card_index: int = -1
 var play_area_idle_style: StyleBoxFlat
 var play_area_hover_style: StyleBoxFlat
 var play_area_valid_style: StyleBoxFlat
-var layout_scale := 1.0
-var pile_card_size := BASE_PILE_CARD_SIZE
-var hand_card_size := BASE_HAND_CARD_SIZE
-var hovered_pile := ""
+var layout_scale: float = 1.0
+var pile_card_size: Vector2 = BASE_PILE_CARD_SIZE
+var hand_card_size: Vector2 = BASE_HAND_CARD_SIZE
+var hovered_pile: String = ""
 var card_art_textures: Dictionary = {}
-var _pending_draw_count := 0
-var _draw_start_index := -1
+var _pending_draw_count: int = 0
+var _draw_start_index: int = -1
 var _flying_cards: Array[CardUI] = []
-var player_bonus_courage_next_turn := 0
-var player_strength_this_turn := 0
+var player_bonus_courage_next_turn: int = 0
+var player_strength_this_turn: int = 0
 var player_panel_courage_label: Label
 var intent_icon_rect: TextureRect
 
@@ -177,7 +179,7 @@ func _start_battle() -> void:
 	player_bonus_courage_next_turn = 0
 	player_strength_this_turn = 0
 	turn_number = 1
-	current_turn = "player"
+	current_turn = PLAYER_SIDE
 	battle_over = false
 	hand_signature = ""
 	hovered_card_index = -1
@@ -234,7 +236,7 @@ func _load_card_definitions() -> void:
 		card_definitions_by_id[normalized_card["id"]] = normalized_card
 		card_definitions_by_name[String(normalized_card["name"]).to_lower()] = normalized_card
 
-	_ensure_card_art_library(card_definitions)
+	_load_card_art_textures(card_definitions)
 
 
 func _load_json_dictionary(resource_path: String) -> Dictionary:
@@ -325,10 +327,6 @@ func _build_starting_monster_buffs() -> Array[Dictionary]:
 	]
 
 
-func _ensure_card_art_library(card_templates: Array[Dictionary]) -> void:
-	_load_card_art_textures(card_templates)
-
-
 func _card_slug_for(card: Dictionary) -> String:
 	var explicit_slug := String(card.get("art_slug", "")).strip_edges()
 	if not explicit_slug.is_empty():
@@ -385,13 +383,9 @@ func _load_card_art_textures(card_templates: Array[Dictionary]) -> void:
 		var resource_path: String = _find_existing_card_art_path(slug)
 		if resource_path.is_empty():
 			continue
-		var texture: Texture2D = _load_card_art_texture(resource_path)
+		var texture: Texture2D = load(resource_path) as Texture2D
 		if texture != null:
 			card_art_textures[slug] = texture
-
-
-func _load_card_art_texture(resource_path: String) -> Texture2D:
-	return load(resource_path) as Texture2D
 
 
 func _shuffle(cards: Array[Dictionary]) -> void:
@@ -403,15 +397,19 @@ func _shuffle(cards: Array[Dictionary]) -> void:
 
 
 func start_player_turn() -> void:
-	current_turn = "player"
+	current_turn = PLAYER_SIDE
 	player_courage = COURAGE_PER_TURN + player_bonus_courage_next_turn
 	player_bonus_courage_next_turn = 0
 	player_strength_this_turn = 0
 	player_block = 0
-	var extra_draws := _apply_turn_start_buffs("player")
+	var extra_draws := _apply_turn_start_buffs(PLAYER_SIDE)
 	_draw_up_to(HAND_SIZE + extra_draws)
 	add_log("[b]Turn %d:[/b] The little dog braces herself." % turn_number)
 	update_ui()
+
+
+func _is_player_turn() -> bool:
+	return current_turn == PLAYER_SIDE
 
 
 func _draw_up_to(target_hand_size: int) -> void:
@@ -428,7 +426,7 @@ func _draw_up_to(target_hand_size: int) -> void:
 
 
 func _attempt_play_card(index: int) -> bool:
-	if battle_over or current_turn != "player":
+	if battle_over or not _is_player_turn():
 		return false
 	if index < 0 or index >= hand.size():
 		return false
@@ -465,14 +463,14 @@ func _resolve_card(card: Dictionary, spent_courage := -1) -> bool:
 		return _card_should_discard(card)
 
 	if properties.get("x_cost", false) and properties.has("damage_per_x"):
-		var per_courage_damage := int(properties["damage_per_x"]) + _attack_flat_bonus("player")
+		var per_courage_damage := int(properties["damage_per_x"]) + _attack_flat_bonus(PLAYER_SIDE)
 		var raw_damage := per_courage_damage * spent_courage
-		var scaled_amount := _apply_attack_status_modifiers(raw_damage, "player")
+		var scaled_amount := _apply_attack_status_modifiers(raw_damage, PLAYER_SIDE)
 		add_log("%s spends %d courage for %d damage before block." % [card["name"], spent_courage, scaled_amount])
 		_deal_damage_to_monster(scaled_amount)
 
 	if properties.has("damage"):
-		var amount := _modified_attack_damage(int(properties["damage"]), "player")
+		var amount := _modified_attack_damage(int(properties["damage"]), PLAYER_SIDE)
 		_deal_damage_to_monster(amount)
 
 	if properties.has("block"):
@@ -582,7 +580,7 @@ func _deal_damage_to_player(amount: int) -> void:
 
 
 func _on_end_turn_pressed() -> void:
-	if battle_over or current_turn != "player":
+	if battle_over or not _is_player_turn():
 		return
 	# Animate hand cards flying to discard before clearing
 	for i in hand_card_views.size():
@@ -594,13 +592,13 @@ func _on_end_turn_pressed() -> void:
 	end_turn_button.disabled = true
 	player_strength_this_turn = 0
 	_tick_down_player_statuses()
-	current_turn = "monster"
+	current_turn = MONSTER_SIDE
 	update_ui()
 	_run_monster_turn()
 
 
 func _can_play_card(index: int) -> bool:
-	if battle_over or current_turn != "player":
+	if battle_over or not _is_player_turn():
 		return false
 	if index < 0 or index >= hand.size():
 		return false
@@ -642,14 +640,14 @@ func _clear_flying_cards() -> void:
 
 func _run_monster_turn() -> void:
 	monster_block = 0
-	_apply_turn_start_buffs("monster")
+	_apply_turn_start_buffs(MONSTER_SIDE)
 	add_log("[b]The Dark Hallway acts:[/b] %s" % pending_intent["name"])
 
 	match pending_intent["kind"]:
 		"attack":
-			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], "monster"))
+			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], MONSTER_SIDE))
 		"attack_debuff":
-			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], "monster"))
+			_deal_damage_to_player(_modified_attack_damage(pending_intent["damage"], MONSTER_SIDE))
 			player_statuses[pending_intent["status"]] += pending_intent["amount"]
 			add_log("She is afflicted with %s for %d turn(s)." % [String(pending_intent["status"]).capitalize(), pending_intent["amount"]])
 		"block":
@@ -706,31 +704,31 @@ func roll_monster_intent() -> void:
 
 
 func _apply_turn_start_buffs(owner: String) -> int:
-	var buffs := player_buffs if owner == "player" else monster_buffs
+	var buffs := player_buffs if owner == PLAYER_SIDE else monster_buffs
 	var extra_draws := 0
 	for buff in buffs:
 		if buff.has("block_every_turn"):
 			var block_amount: int = buff["block_every_turn"]
-			if owner == "player":
+			if owner == PLAYER_SIDE:
 				player_block += block_amount
 				add_log("%s grants %d block." % [buff["name"], block_amount])
 			else:
 				monster_block += block_amount
 				add_log("%s grants the hallway %d block." % [buff["name"], block_amount])
 
-		if buff.has("draw_every_turn") and owner == "player":
+		if buff.has("draw_every_turn") and owner == PLAYER_SIDE:
 			var draw_amount: int = int(buff["draw_every_turn"])
 			extra_draws += draw_amount
 			add_log("%s lets her draw %d card(s)." % [buff["name"], draw_amount])
 
-		if buff.has("energy_every_turn") and owner == "player":
+		if buff.has("energy_every_turn") and owner == PLAYER_SIDE:
 			var courage_amount: int = buff["energy_every_turn"]
 			player_courage += courage_amount
 			add_log("%s grants %d courage." % [buff["name"], courage_amount])
 
 		if buff.has("shred_block_every_turn"):
 			var shred_amount: int = buff["shred_block_every_turn"]
-			if owner == "monster":
+			if owner == MONSTER_SIDE:
 				var removed := mini(player_block, shred_amount)
 				player_block -= removed
 				if removed > 0:
@@ -763,8 +761,8 @@ func _modified_attack_damage(base_damage: int, attacker: String) -> int:
 
 func _attack_flat_bonus(attacker: String) -> int:
 	var total_bonus := 0
-	var buffs := player_buffs if attacker == "player" else monster_buffs
-	if attacker == "player":
+	var buffs := player_buffs if attacker == PLAYER_SIDE else monster_buffs
+	if attacker == PLAYER_SIDE:
 		total_bonus += player_strength_this_turn
 
 	for buff in buffs:
@@ -775,9 +773,9 @@ func _attack_flat_bonus(attacker: String) -> int:
 
 
 func _apply_attack_status_modifiers(total_damage: int, attacker: String) -> int:
-	if attacker == "player" and player_statuses.weak > 0:
+	if attacker == PLAYER_SIDE and player_statuses.weak > 0:
 		total_damage = maxi(1, int(floor(total_damage * 0.75)))
-	if attacker == "player" and monster_statuses.vulnerable > 0:
+	if attacker == PLAYER_SIDE and monster_statuses.vulnerable > 0:
 		total_damage = int(ceil(total_damage * 1.5))
 	return total_damage
 
@@ -817,13 +815,13 @@ func update_ui() -> void:
 	elif player_hp <= 0:
 		turn_label.text = "Encounter Lost"
 	else:
-		turn_label.text = "Turn %d - %s" % [turn_number, "Player" if current_turn == "player" else "Monster"]
+		turn_label.text = "Turn %d - %s" % [turn_number, "Player" if _is_player_turn() else "Monster"]
 
 	_update_intent_icon()
 	intent_label.text = _build_intent_text()
 	draw_pile_label.text = str(draw_pile.size())
 	discard_pile_label.text = str(discard_pile.size())
-	end_turn_button.disabled = battle_over or current_turn != "player"
+	end_turn_button.disabled = battle_over or not _is_player_turn()
 	reset_button.visible = battle_over
 
 	_sync_pile_views()
@@ -846,7 +844,7 @@ func _build_card_rules_text(card: Dictionary) -> String:
 		rules_text = _replace_card_stat_text(
 			rules_text,
 			int(properties["damage"]),
-			_modified_attack_damage(int(properties["damage"]), "player"),
+			_modified_attack_damage(int(properties["damage"]), PLAYER_SIDE),
 			"damage",
 			CARD_DAMAGE_COLOR
 		)
@@ -855,7 +853,7 @@ func _build_card_rules_text(card: Dictionary) -> String:
 		rules_text = _replace_card_stat_text(
 			rules_text,
 			int(properties["damage_per_x"]),
-			_modified_attack_damage(int(properties["damage_per_x"]), "player"),
+			_modified_attack_damage(int(properties["damage_per_x"]), PLAYER_SIDE),
 			"damage",
 			CARD_DAMAGE_COLOR
 		)
@@ -944,12 +942,12 @@ func _build_intent_text() -> String:
 	var summary := ""
 	match pending_intent.get("kind", ""):
 		"attack":
-			summary = "Attack for %d" % _modified_attack_damage(pending_intent["damage"], "monster")
+			summary = "Attack for %d" % _modified_attack_damage(pending_intent["damage"], MONSTER_SIDE)
 		"block":
 			summary = "Gain %d block" % pending_intent["block"]
 		"attack_debuff":
 			summary = "Attack for %d and %s %d" % [
-				_modified_attack_damage(pending_intent["damage"], "monster"),
+				_modified_attack_damage(pending_intent["damage"], MONSTER_SIDE),
 				String(pending_intent["status"]).capitalize(),
 				pending_intent["amount"],
 			]
@@ -1355,7 +1353,7 @@ func _rebuild_hand_views() -> void:
 
 
 func _is_card_disabled(card: Dictionary) -> bool:
-	return battle_over or current_turn != "player" or _current_card_cost(card) > player_courage
+	return battle_over or not _is_player_turn() or _current_card_cost(card) > player_courage
 
 
 func _layout_hand_cards(animated := true) -> void:
@@ -1401,7 +1399,7 @@ func _refresh_play_area_hint(is_dragging: bool, is_valid_drop: bool) -> void:
 		play_instruction_label.text = "The encounter is over. Use Try Again to reset."
 		return
 
-	if current_turn != "player":
+	if not _is_player_turn():
 		play_area.add_theme_stylebox_override("panel", play_area_idle_style)
 		play_instruction_label.text = "The hallway is acting. Hold your nerve."
 		return
@@ -1420,7 +1418,7 @@ func _refresh_play_area_hint(is_dragging: bool, is_valid_drop: bool) -> void:
 
 
 func _drop_position_is_valid(drop_position: Vector2) -> bool:
-	if battle_over or current_turn != "player":
+	if battle_over or not _is_player_turn():
 		return false
 	return play_area.get_global_rect().has_point(drop_position)
 

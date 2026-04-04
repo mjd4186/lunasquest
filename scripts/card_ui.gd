@@ -20,20 +20,20 @@ const DRAG_THRESHOLD := 10.0
 @onready var name_label: Label = %NameLabel
 
 var card_data: Dictionary = {}
-var card_index := -1
-var face_down := false
-var disabled := false
-var draggable := true
-var dragging := false
-var hover_enabled := true
+var card_index: int = -1
+var face_down: bool = false
+var disabled: bool = false
+var draggable: bool = true
+var dragging: bool = false
+var hover_enabled: bool = true
 
-var _pressing := false
-var _mouse_inside := false
-var _press_origin := Vector2.ZERO
-var _drag_offset := Vector2.ZERO
-var _rest_position := Vector2.ZERO
-var _rest_rotation := 0.0
-var _rest_z_index := 0
+var _pressing: bool = false
+var _mouse_inside: bool = false
+var _press_origin: Vector2 = Vector2.ZERO
+var _drag_offset: Vector2 = Vector2.ZERO
+var _rest_position: Vector2 = Vector2.ZERO
+var _rest_rotation: float = 0.0
+var _rest_z_index: int = 0
 var _move_tween: Tween
 
 
@@ -107,7 +107,7 @@ func set_hover_enabled(value: bool) -> void:
 	hover_enabled = value
 
 
-func set_rest_transform(new_position: Vector2, new_rotation: float, new_z_index: int, animated := true, delay := 0.0, duration := 0.18) -> void:
+func set_rest_transform(new_position: Vector2, new_rotation: float, new_z_index: int, animated: bool = true, delay: float = 0.0, duration: float = 0.18) -> void:
 	_rest_position = new_position
 	_rest_rotation = new_rotation
 	_rest_z_index = new_z_index
@@ -249,7 +249,7 @@ func _apply_enabled_state() -> void:
 		cost_label.add_theme_color_override("font_color", Color(1.0, 0.952941, 0.815686, 1.0))
 
 
-func fly_to(target_pos: Vector2, target_rot: float, target_scl: Vector2, duration: float, delay := 0.0, callback: Callable = Callable()) -> void:
+func fly_to(target_pos: Vector2, target_rot: float, target_scl: Vector2, duration: float, delay: float = 0.0, callback: Callable = Callable()) -> void:
 	draggable = false
 	hover_enabled = false
 	_kill_tween()
