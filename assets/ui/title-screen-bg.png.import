@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ct3pgb4ov8qd5"
-path="res://.godot/imported/favorite-sweater.png-0076db07052e889a039130a0ed4cf716.ctex"
+uid="uid://cfv3ho7p8etrg"
+path="res://.godot/imported/title-screen-bg.png-14fbb6c8539f17ba1da48b7026ef9918.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/favorite-sweater.png"
-dest_files=["res://.godot/imported/favorite-sweater.png-0076db07052e889a039130a0ed4cf716.ctex"]
+source_file="res://assets/ui/title-screen-bg.png"
+dest_files=["res://.godot/imported/title-screen-bg.png-14fbb6c8539f17ba1da48b7026ef9918.ctex"]
 
 [params]
 

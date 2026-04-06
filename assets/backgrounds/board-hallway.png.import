@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cb162isnfi35y"
-path="res://.godot/imported/luna.png-2fd10b16812991bd2e3e48639550ec9a.ctex"
+uid="uid://b62ba8r6mptk0"
+path="res://.godot/imported/board-hallway.png-8f3cbd9792c91fa87a3ba3380d0adeba.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://luna.png"
-dest_files=["res://.godot/imported/luna.png-2fd10b16812991bd2e3e48639550ec9a.ctex"]
+source_file="res://assets/backgrounds/board-hallway.png"
+dest_files=["res://.godot/imported/board-hallway.png-8f3cbd9792c91fa87a3ba3380d0adeba.ctex"]
 
 [params]
 

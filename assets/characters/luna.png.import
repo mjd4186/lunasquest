@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bm5gn0vo1vcig"
-path="res://.godot/imported/cower.jpg-d5fcf810ea11443526972eeded343fc8.ctex"
+uid="uid://cb162isnfi35y"
+path="res://.godot/imported/luna.png-0769e73cb12cef37b046b0623a4a24a5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/cower.jpg"
-dest_files=["res://.godot/imported/cower.jpg-d5fcf810ea11443526972eeded343fc8.ctex"]
+source_file="res://assets/characters/luna.png"
+dest_files=["res://.godot/imported/luna.png-0769e73cb12cef37b046b0623a4a24a5.ctex"]
 
 [params]
 

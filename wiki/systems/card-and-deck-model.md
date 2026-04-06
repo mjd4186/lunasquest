@@ -17,7 +17,7 @@ Card content is authored in JSON, normalized into a consistent runtime shape, an
    - card type is lowercased
    - top-level immediate stats like `damage`, `block`, `draw`, and `heal` are folded into `properties`
    - legacy property names are mapped forward
-3. Card art is looked up from `res://cardart/<slug>.(png|jpg)` if it exists.
+3. Card art is looked up from `res://assets/card_art/<slug>.(png|jpg)` if it exists.
 4. The starting deck is assembled by card id or case-insensitive name lookup.
 5. During battle, the runtime deck uses duplicated dictionaries rather than mutating the library templates directly.
 

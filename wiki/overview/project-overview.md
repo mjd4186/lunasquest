@@ -35,7 +35,7 @@
 ## Good Next Ingests
 
 - The scene hierarchy in `scenes/main.tscn` to document layout and UI ownership in more detail
-- Art coverage in `cardart/` and root texture assets
+- Art coverage in `assets/card_art/`, `assets/ui/`, and the other organized asset folders
 - Any future progression/reward prototype code or data
 - Playtest notes once the prototype is being tuned against desired roguelike references
 

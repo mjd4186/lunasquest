@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b62ba8r6mptk0"
-path="res://.godot/imported/board-hallway.png-b8c30f302f622832d1d20be80d6c414d.ctex"
+uid="uid://bvrjq7tjgyyju"
+path="res://.godot/imported/card-front.png-0fc1c852fd9b94afc096f555b972d388.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://board-hallway.png"
-dest_files=["res://.godot/imported/board-hallway.png-b8c30f302f622832d1d20be80d6c414d.ctex"]
+source_file="res://assets/ui/card-front.png"
+dest_files=["res://.godot/imported/card-front.png-0fc1c852fd9b94afc096f555b972d388.ctex"]
 
 [params]
 

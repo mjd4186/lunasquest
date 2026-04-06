@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://baqwoa37eypjo"
-path="res://.godot/imported/treato.png-fd7e125df340f1a7cf46b28568d319e5.ctex"
+uid="uid://6nwwbccr3qd1"
+path="res://.godot/imported/winter-coat.jpg-1aad2423fde226912468fdc75511a2ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/treato.png"
-dest_files=["res://.godot/imported/treato.png-fd7e125df340f1a7cf46b28568d319e5.ctex"]
+source_file="res://assets/card_art/winter-coat.jpg"
+dest_files=["res://.godot/imported/winter-coat.jpg-1aad2423fde226912468fdc75511a2ad.ctex"]
 
 [params]
 

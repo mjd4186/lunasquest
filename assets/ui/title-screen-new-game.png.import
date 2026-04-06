@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c4vt7rv6o3a30"
-path="res://.godot/imported/cower.png-07fb1782432c2910188620fa4dbc8535.ctex"
+uid="uid://cmtslrb0fae35"
+path="res://.godot/imported/title-screen-new-game.png-c2c602ac08ecd2c71c4aa9dd8ca827cc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/cower.png"
-dest_files=["res://.godot/imported/cower.png-07fb1782432c2910188620fa4dbc8535.ctex"]
+source_file="res://assets/ui/title-screen-new-game.png"
+dest_files=["res://.godot/imported/title-screen-new-game.png-c2c602ac08ecd2c71c4aa9dd8ca827cc.ctex"]
 
 [params]
 

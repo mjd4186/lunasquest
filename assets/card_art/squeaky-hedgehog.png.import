@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bvrjq7tjgyyju"
-path="res://.godot/imported/card-front.png-b914a1623fc0c705515178c15b4ba0f4.ctex"
+uid="uid://cu5bg7yn1lync"
+path="res://.godot/imported/squeaky-hedgehog.png-668cdf4bc63e13027816f5eedefbbc0e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://card-front.png"
-dest_files=["res://.godot/imported/card-front.png-b914a1623fc0c705515178c15b4ba0f4.ctex"]
+source_file="res://assets/card_art/squeaky-hedgehog.png"
+dest_files=["res://.godot/imported/squeaky-hedgehog.png-668cdf4bc63e13027816f5eedefbbc0e.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://blnylcyi72al0"
-path="res://.godot/imported/hp-shield-bar.png-16a101d1561e62e8b7fb8489ec52f7f1.ctex"
+uid="uid://cxl2ffyehum13"
+path="res://.godot/imported/find-courage.png-22d880f51f67f612fec6037b5adda915.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://hp-shield-bar.png"
-dest_files=["res://.godot/imported/hp-shield-bar.png-16a101d1561e62e8b7fb8489ec52f7f1.ctex"]
+source_file="res://assets/card_art/find-courage.png"
+dest_files=["res://.godot/imported/find-courage.png-22d880f51f67f612fec6037b5adda915.ctex"]
 
 [params]
 

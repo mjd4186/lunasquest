@@ -1,7 +1,7 @@
 extends Control
 class_name UnitStatusBars
 
-const FRAME_ATLAS := preload("res://hp-shield-bar.png")
+const FRAME_ATLAS := preload("res://assets/ui/hp-shield-bar.png")
 const FRAME_REGION := Rect2(187.0, 242.0, 1159.0, 466.0)
 const HP_LANE_RECT := Rect2(264.0, 75.0, 786.0, 82.0)
 const BLOCK_LANE_RECT := Rect2(264.0, 274.0, 778.0, 75.0)

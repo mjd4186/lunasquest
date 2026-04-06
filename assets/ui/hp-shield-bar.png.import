@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://usuq5frjngwo"
-path="res://.godot/imported/card-back.png-0a4531f9bc2ef72b7520dfe4583521bc.ctex"
+uid="uid://blnylcyi72al0"
+path="res://.godot/imported/hp-shield-bar.png-b8323baf7443c2cbceef564713f2cec9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://card-back.png"
-dest_files=["res://.godot/imported/card-back.png-0a4531f9bc2ef72b7520dfe4583521bc.ctex"]
+source_file="res://assets/ui/hp-shield-bar.png"
+dest_files=["res://.godot/imported/hp-shield-bar.png-b8323baf7443c2cbceef564713f2cec9.ctex"]
 
 [params]
 

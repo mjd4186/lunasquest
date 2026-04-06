@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_b0b63"]
-[ext_resource type="Texture2D" path="res://board-hallway.png" id="2_ynjpy"]
+[ext_resource type="Texture2D" path="res://assets/backgrounds/board-hallway.png" id="2_ynjpy"]
 [ext_resource type="PackedScene" path="res://scenes/unit_status_bars.tscn" id="3_mq6hr"]
 
 [node name="Main" type="Control"]

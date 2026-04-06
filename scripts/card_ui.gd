@@ -6,8 +6,8 @@ signal drag_moved(card: CardUI, mouse_position: Vector2)
 signal drag_ended(card: CardUI, mouse_position: Vector2)
 signal hover_changed(card: CardUI, is_hovering: bool)
 
-const CARD_FRONT_TEXTURE := preload("res://card-front.png")
-const CARD_BACK_TEXTURE := preload("res://card-back.png")
+const CARD_FRONT_TEXTURE := preload("res://assets/ui/card-front.png")
+const CARD_BACK_TEXTURE := preload("res://assets/ui/card-back.png")
 const DEFAULT_CARD_SIZE := Vector2(240, 360)
 const DRAG_THRESHOLD := 10.0
 

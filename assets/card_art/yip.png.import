@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bhrkxbvj03ku6"
-path="res://.godot/imported/peek-around-corner.png-96b69d5f8b46d96d070fea4cf44e2f90.ctex"
+uid="uid://crcn2n2n8n6v6"
+path="res://.godot/imported/yip.png-180c4b50e924703ba08f7d02ae21b5ad.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://cardart/peek-around-corner.png"
-dest_files=["res://.godot/imported/peek-around-corner.png-96b69d5f8b46d96d070fea4cf44e2f90.ctex"]
+source_file="res://assets/card_art/yip.png"
+dest_files=["res://.godot/imported/yip.png-180c4b50e924703ba08f7d02ae21b5ad.ctex"]
 
 [params]
 
