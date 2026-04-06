@@ -42,10 +42,10 @@ stretch_mode = 5
 
 [node name="PlayNowButton" type="TextureButton" parent="TitleCanvas"]
 unique_name_in_owner = true
-offset_left = 222.0
-offset_top = 700.0
-offset_right = 936.0
-offset_bottom = 906.0
+offset_left = 106.0
+offset_top = 684.0
+offset_right = 928.0
+offset_bottom = 921.0
 texture_normal = ExtResource("3_7v67m")
 texture_pressed = ExtResource("3_7v67m")
 texture_hover = ExtResource("3_7v67m")
@@ -54,10 +54,10 @@ stretch_mode = 5
 
 [node name="BarkButton" type="TextureButton" parent="TitleCanvas"]
 unique_name_in_owner = true
-offset_left = 984.0
-offset_top = 700.0
-offset_right = 1698.0
-offset_bottom = 906.0
+offset_left = 868.0
+offset_top = 684.0
+offset_right = 1690.0
+offset_bottom = 921.0
 texture_normal = ExtResource("4_s92n2")
 texture_pressed = ExtResource("4_s92n2")
 texture_hover = ExtResource("4_s92n2")
