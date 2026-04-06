@@ -1,0 +1,69 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_w0w5i"]
+[ext_resource type="Texture2D" path="res://assets/ui/title-screen-bg.png" id="2_34x0u"]
+[ext_resource type="Texture2D" path="res://assets/ui/title-screen-new-game.png" id="3_7v67m"]
+[ext_resource type="Texture2D" path="res://assets/ui/title-screen-bark.png" id="4_s92n2"]
+[ext_resource type="AudioStream" path="res://assets/sfx/dragon-studio-dog-bark-sound-450454.mp3" id="5_y34yr"]
+
+[node name="TitleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_w0w5i")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TitleCanvas" type="Control" parent="."]
+unique_name_in_owner = true
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Foreground" type="TextureRect" parent="TitleCanvas"]
+offset_left = 150.0
+offset_right = 1770.0
+offset_bottom = 1080.0
+mouse_filter = 2
+texture = ExtResource("2_34x0u")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayNowButton" type="TextureButton" parent="TitleCanvas"]
+unique_name_in_owner = true
+offset_left = 222.0
+offset_top = 700.0
+offset_right = 936.0
+offset_bottom = 906.0
+texture_normal = ExtResource("3_7v67m")
+texture_pressed = ExtResource("3_7v67m")
+texture_hover = ExtResource("3_7v67m")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BarkButton" type="TextureButton" parent="TitleCanvas"]
+unique_name_in_owner = true
+offset_left = 984.0
+offset_top = 700.0
+offset_right = 1698.0
+offset_bottom = 906.0
+texture_normal = ExtResource("4_s92n2")
+texture_pressed = ExtResource("4_s92n2")
+texture_hover = ExtResource("4_s92n2")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BarkPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("5_y34yr")
